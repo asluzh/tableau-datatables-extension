@@ -54,10 +54,10 @@
     // the configuration screen, otherwise we will clear the table and destroy the
     // reference.
     var sheetName = tableau.extensions.settings.get("worksheet");
-    if (sheetName == undefined || sheetName =="" || sheetName == null) {
+    if (sheetName == undefined || sheetName == "" || sheetName == null) {
       $("#configure").show();
       $("#datatable").text("");
-      if( tableReference !== null) {
+      if (tableReference !== null) {
         tableReference.destroy();
       }
       // Exit the function if no worksheet name is present !!!
@@ -81,8 +81,8 @@
     // override default datatable lang variables
     var datatableLangObj = {
       oAria: {
-        sSortAscending: ': activate to sort column ascending'+(includeTableName ? ' on '+sheetName+' table' : ''),
-        sSortDescending: ': activate to sort column descending'+(includeTableName ? ' on '+sheetName+' table' : '')
+        sSortAscending: ': activate to sort column ascending' + (includeTableName ? ' on ' + sheetName + ' table' : ''),
+        sSortDescending: ': activate to sort column descending' + (includeTableName ? ' on ' + sheetName + ' table' : '')
       }
     };
 
@@ -111,12 +111,12 @@
         // logic to read from the column names and column order from our configiration.
         const worksheetData = underlying.data;
         var column_order = tableau.extensions.settings.get("column_order").split("|");
-        var tableData = makeArray(underlying.columns.length,underlying.totalRowCount);
+        var tableData = makeArray(underlying.columns.length, underlying.totalRowCount);
         for (var i = 0; i < tableData.length; i++) {
           for (var j = 0; j < tableData[i].length; j++) {
             // you can get teh value or formatted value
             // https://tableau.github.io/extensions-api/docs/interfaces/datavalue.html
-            tableData[i][j] = worksheetData[i][column_order[j]-1].formattedValue;
+            tableData[i][j] = worksheetData[i][column_order[j] - 1].formattedValue;
           }
         }
 
@@ -180,12 +180,13 @@
           });
         }
       })
-    } else {
+    } else { // summary data
       worksheet.getSummaryDataAsync({ maxRows: max_no_records }).then(function (sumdata) {
         // We will loop through our column names from our settings and save these into an array
         // We will use this later in our datatable function.
         // https://tableau.github.io/extensions-api/docs/interfaces/datatable.html#columns
         var data = [];
+        // data.push({ title: "cb" }); // checkboxes, add dummy first column
         var column_names = tableau.extensions.settings.get("column_names").split("|");
         for (i = 0; i < column_names.length; i++) {
           data.push({ title: column_names[i] });
@@ -196,10 +197,11 @@
         // logic to read from the column names and column order from our configiration.
         const worksheetData = sumdata.data;
         var column_order = tableau.extensions.settings.get("column_order").split("|");
-        var tableData = makeArray(sumdata.columns.length,sumdata.totalRowCount);
+        // var tableData = makeArray(sumdata.columns.length, sumdata.totalRowCount);
+        var tableData = makeArray(sumdata.columns.length, sumdata.totalRowCount);
         for (var i = 0; i < tableData.length; i++) {
           for (var j = 0; j < tableData[i].length; j++) {
-            tableData[i][j] = worksheetData[i][column_order[j]-1].formattedValue;
+            tableData[i][j] = worksheetData[i][column_order[j] - 1].formattedValue;
           }
         }
 
@@ -244,6 +246,16 @@
             dom: 'Bfrtip',
             data: tableData,
             columns: data,
+            columnDefs: [
+              {
+                targets: 0,
+                checkboxes: {
+                  selectRow: true,
+                  selectAll: true,
+                  stateSave: true
+                }
+              }
+            ],
             responsive: true,
             buttons: buttons,
             bAutoWidth: false,
@@ -256,6 +268,16 @@
           tableReference = $('#datatable').DataTable({
             data: tableData,
             columns: data,
+            columnDefs: [
+              {
+                targets: 0,
+                checkboxes: {
+                  selectRow: true,
+                  selectAll: true,
+                  stateSave: true
+                }
+              }
+            ],
             responsive: true,
             bAutoWidth: false,
             initComplete: datatableInitCallback,
@@ -276,35 +298,35 @@
     var includeTableName = (tableau.extensions.settings.get('include-table-name') == 'Y' ? true : false);
 
     // add screen reader only h2
-    $('#datatable_wrapper').prepend('<h2 class="sr-only">'+sheetName+' | Data Table Extension | Tableau</h2>');
+    $('#datatable_wrapper').prepend('<h2 class="sr-only">' + sheetName + ' | Data Table Extension | Tableau</h2>');
 
 
     // add screen readers only caption for table
     // make changes of caption announced by screen reader - used to update caption when sorting changed
-    $node.prepend($('<caption id="datatable_caption" class="sr-only" role="alert" aria-live="polite">'+sheetName+'</caption>'));
+    $node.prepend($('<caption id="datatable_caption" class="sr-only" role="alert" aria-live="polite">' + sheetName + '</caption>'));
 
 
 
     // update buttons aria-label to include information about table it is bound to
-    table.buttons().each(function(item){
+    table.buttons().each(function (item) {
       var $buttonNode = $(item.node);
 
       var ariaLabel = '';
 
       if ($buttonNode.hasClass('buttons-copy')) {
-        ariaLabel = 'Copy'+(includeTableName ? ' '+sheetName : '')+' table';
+        ariaLabel = 'Copy' + (includeTableName ? ' ' + sheetName : '') + ' table';
       }
       else if ($buttonNode.hasClass('buttons-csv')) {
-        ariaLabel = 'CSV of'+(includeTableName ? ' '+sheetName : '')+' table';
+        ariaLabel = 'CSV of' + (includeTableName ? ' ' + sheetName : '') + ' table';
       }
       else if ($buttonNode.hasClass('buttons-excel')) {
-        ariaLabel = 'Excel of'+(includeTableName ? ' '+sheetName : '')+' table';
+        ariaLabel = 'Excel of' + (includeTableName ? ' ' + sheetName : '') + ' table';
       }
       else if ($buttonNode.hasClass('buttons-pdf')) {
-        ariaLabel = 'PDF of'+(includeTableName ? ' '+sheetName : '')+' table';
+        ariaLabel = 'PDF of' + (includeTableName ? ' ' + sheetName : '') + ' table';
       }
       else if ($buttonNode.hasClass('buttons-print')) {
-        ariaLabel = 'Print'+(includeTableName ? ' '+sheetName : '')+' table';
+        ariaLabel = 'Print' + (includeTableName ? ' ' + sheetName : '') + ' table';
       }
 
       if (ariaLabel) {
@@ -315,7 +337,7 @@
 
     // update search input label
     var $searchEl = $('#datatable_filter input');
-    $searchEl.attr('aria-label', 'Search'+(includeTableName ? ' '+sheetName : '')+' table');
+    $searchEl.attr('aria-label', 'Search' + (includeTableName ? ' ' + sheetName : '') + ' table');
 
 
     // set extension's iframe title
@@ -340,9 +362,8 @@
     var countOfColumnsForRowHeader = Number(tableau.extensions.settings.get('col-count-row-header'));
 
     // set row headers if setting is selected
-    if (countOfColumnsForRowHeader > 0)
-    {
-      table.rows().every(function(){
+    if (countOfColumnsForRowHeader > 0) {
+      table.rows().every(function () {
         // for each row update needed number of cells to have role of row header
         $(this.node()).find('td').slice(0, countOfColumnsForRowHeader).attr('role', 'rowheader');
       });
@@ -361,7 +382,7 @@
       var paginateButEls = $paginationNode.find('.paginate_button');
 
       // if pagination button is disabled or current page (means no action when activated), remove from tab order
-      paginateButEls.each(function(){
+      paginateButEls.each(function () {
         var $item = $(this);
 
         // remove aria-controls set by default for each button (previously we set it for whole navigation element)
@@ -378,36 +399,32 @@
         }
 
         // prev page link text: add sr-only " page" text
-        if ($item.attr('id') == 'datatable_previous')
-        {
-          $item.html('Previous <span class="sr-only">&nbsp;page of'+(includeTableName ? ' '+sheetName+' table' : '')+'</span>');
+        if ($item.attr('id') == 'datatable_previous') {
+          $item.html('Previous <span class="sr-only">&nbsp;page of' + (includeTableName ? ' ' + sheetName + ' table' : '') + '</span>');
         }
         // link with number, for example "2" - add sr-only "page " text
-        else if ($item.text().trim().match(/^\d+$/))
-        {
-            // page number
-            var pageNum = Number($item.text().trim());
-            // items per page
-            var itemsPerPage = table.page.len();
-            // total number of items in table
-            var totalCount = table.data().length;
+        else if ($item.text().trim().match(/^\d+$/)) {
+          // page number
+          var pageNum = Number($item.text().trim());
+          // items per page
+          var itemsPerPage = table.page.len();
+          // total number of items in table
+          var totalCount = table.data().length;
 
-            // calculate number of first item on the page
-            var firstItemNum = (pageNum-1)*itemsPerPage + 1;
-            var lastItemNum = firstItemNum + itemsPerPage - 1;
-            // correct last item num if last page is not full
-            if (lastItemNum > totalCount)
-            {
-                lastItemNum = totalCount;
-            }
+          // calculate number of first item on the page
+          var firstItemNum = (pageNum - 1) * itemsPerPage + 1;
+          var lastItemNum = firstItemNum + itemsPerPage - 1;
+          // correct last item num if last page is not full
+          if (lastItemNum > totalCount) {
+            lastItemNum = totalCount;
+          }
 
-            // set aria-label attribute
-            $item.attr('aria-label', pageNum+' - entries '+firstItemNum+' to '+lastItemNum+' of '+totalCount+(includeTableName ? ' on '+sheetName+' table' : ''));
+          // set aria-label attribute
+          $item.attr('aria-label', pageNum + ' - entries ' + firstItemNum + ' to ' + lastItemNum + ' of ' + totalCount + (includeTableName ? ' on ' + sheetName + ' table' : ''));
         }
         // next page link text: add sr-only " page" text
-        else if ($item.attr('id') == 'datatable_next')
-        {
-          $item.html('Next <span class="sr-only">&nbsp;page of'+(includeTableName ? ' '+sheetName+' table' : '')+'</span>');
+        else if ($item.attr('id') == 'datatable_next') {
+          $item.html('Next <span class="sr-only">&nbsp;page of' + (includeTableName ? ' ' + sheetName + ' table' : '') + '</span>');
         }
       });
     }
@@ -416,8 +433,7 @@
     // fix sorting change announce by screen reader
     var order = table.order();
 
-    if (order && order.length)
-    {
+    if (order && order.length) {
       // remove aria-sort from any column set previously
       // as per spec it should be applied to only one element at a time: https://www.w3.org/WAI/PF/aria/states_and_properties#aria-sort
       $node.find('[aria-sort]').removeAttr('aria-sort');
@@ -431,11 +447,10 @@
 
       // update table caption
       var sortedByDirectionText = ariaSortedByDirection;
-      $captionEl.text(sheetName+' sorted by '+$columnHeader.text()+': '+sortedByDirectionText+' order');
+      $captionEl.text(sheetName + ' sorted by ' + $columnHeader.text() + ': ' + sortedByDirectionText + ' order');
     }
     // default for no sort
-    else
-    {
+    else {
       $node.find('[aria-sort]').removeAttr('aria-sort');
       $captionEl.text(sheetName);
     }
@@ -445,8 +460,8 @@
   // by Tableau and repopulate this with the values we want.
   function makeArray(d1, d2) {
     var arr = new Array(d2), i, l;
-    for(i = 0, l = d2; i < l; i++) {
-        arr[i] = new Array(d1);
+    for (i = 0, l = d2; i < l; i++) {
+      arr[i] = new Array(d1);
     }
     return arr;
   }
@@ -454,7 +469,8 @@
   // This is called when you click on the Configure button.
   function configure() {
 
-    const popupUrl = `./dialog.html`;
+    let popupUrl =
+      window.location.href.substr(0, window.location.href.lastIndexOf("/") + 1) + "dialog.html";
 
     let input = "";
 
