@@ -18,6 +18,13 @@
     tableau.extensions.initializeAsync({ 'configure': configure }).then(function () {
       // calls a function to show the table. There will be plenty of logic in this one.
       renderDataTable();
+      let datatablesext = localStorage.getItem("datatablesext");
+      if (!datatablesext) {
+        datatablesext = "X";
+      }
+      $('#error').text(datatablesext);
+      datatablesext = datatablesext + "x";
+      localStorage.setItem("datatablesext", datatablesext);
 
       // We add our Settings and Parameter listeners here  listener here.
       unregisterSettingsEventListener = tableau.extensions.settings.addEventListener(tableau.TableauEventType.SettingsChanged, (settingsEvent) => {
