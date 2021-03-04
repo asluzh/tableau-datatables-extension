@@ -4,6 +4,7 @@
 
   // Creates a global table reference for future use.
   let tableReference = null;
+  let extensionTracker = null;
 
   // These variables will hold a reference to the unregister Event Listener functions.
   // https://tableau.github.io/extensions-api/docs/interfaces/dashboard.html#addeventlistener
@@ -18,13 +19,13 @@
     tableau.extensions.initializeAsync({ 'configure': configure }).then(function () {
       // calls a function to show the table. There will be plenty of logic in this one.
       renderDataTable();
-      let datatablesext = localStorage.getItem("datatablesext");
-      if (!datatablesext) {
-        datatablesext = "X";
+      extensionTracker = localStorage.getItem("tableau.extensions.datatables.tracker");
+      if (!extensionTracker) {
+        extensionTracker = 0;
       }
-      $('#error').text(datatablesext);
-      datatablesext = datatablesext + "x";
-      localStorage.setItem("datatablesext", datatablesext);
+      $('#tracker').text("Extension launch counter: " + extensionTracker);
+      extensionTracker = extensionTracker + 1;
+      localStorage.setItem("tableau.extensions.datatables.tracker", extensionTracker);
 
       // We add our Settings and Parameter listeners here  listener here.
       unregisterSettingsEventListener = tableau.extensions.settings.addEventListener(tableau.TableauEventType.SettingsChanged, (settingsEvent) => {
