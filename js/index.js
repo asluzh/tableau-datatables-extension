@@ -19,7 +19,7 @@
     tableau.extensions.initializeAsync({ 'configure': configure }).then(function () {
       // calls a function to show the table. There will be plenty of logic in this one.
       renderDataTable();
-      extensionTracker = localStorage.getItem("tableau.extensions.datatables.tracker");
+      extensionTracker = parseInt(localStorage.getItem("tableau.extensions.datatables.tracker"));
       if (!extensionTracker) {
         extensionTracker = 0;
       }
@@ -82,8 +82,6 @@
     });
 
     // Retrieve values the other two values from the settings dialogue window.
-    var underlying = tableau.extensions.settings.get("underlying");
-    var max_no_records = tableau.extensions.settings.get("max_no_records");
     var includeTableName = (tableau.extensions.settings.get('include-table-name') == 'Y' ? true : false);
 
     // override default datatable lang variables
@@ -102,199 +100,108 @@
       renderDataTable();
     });
 
-    // If underlying is 1 then get Underlying, else get Summary.
-    if (underlying == 1) {
-      worksheet.getUnderlyingDataAsync({ maxRows: max_no_records }).then(function (underlying) {
-        // We will loop through our column names from our settings and save these into an array
-        // We will use this later in our datatable function.
-        // https://tableau.github.io/extensions-api/docs/interfaces/datatable.html#columns
-        var data = [];
-        var column_names = tableau.extensions.settings.get("column_names").split("|");
-        for (i = 0; i < column_names.length; i++) {
-          data.push({ title: column_names[i] });
-        }
+    worksheet.getSummaryDataAsync().then(function (sumdata) {
+      // We will loop through our column names from our settings and save these into an array
+      // We will use this later in our datatable function.
+      // https://tableau.github.io/extensions-api/docs/interfaces/datatable.html#columns
+      var data = [];
+      // data.push({ title: "cb" }); // checkboxes, add dummy first column
+      var column_names = tableau.extensions.settings.get("column_names").split("|");
+      for (i = 0; i < column_names.length; i++) {
+        data.push({ title: column_names[i] });
+      }
 
-        // We have created an array to match the underlying data source and then
-        // looped through to populate our array with the value data set. We also added
-        // logic to read from the column names and column order from our configiration.
-        const worksheetData = underlying.data;
-        var column_order = tableau.extensions.settings.get("column_order").split("|");
-        var tableData = makeArray(underlying.columns.length, underlying.totalRowCount);
-        for (var i = 0; i < tableData.length; i++) {
-          for (var j = 0; j < tableData[i].length; j++) {
-            // you can get teh value or formatted value
-            // https://tableau.github.io/extensions-api/docs/interfaces/datavalue.html
-            tableData[i][j] = worksheetData[i][column_order[j] - 1].formattedValue;
-          }
+      const worksheetData = sumdata.data;
+      var column_order = tableau.extensions.settings.get("column_order").split("|");
+      // var tableData = makeArray(sumdata.columns.length, sumdata.totalRowCount);
+      var tableData = makeArray(sumdata.columns.length, sumdata.totalRowCount);
+      for (var i = 0; i < tableData.length; i++) {
+        for (var j = 0; j < tableData[i].length; j++) {
+          tableData[i][j] = worksheetData[i][column_order[j] - 1].formattedValue;
         }
+      }
 
-        // Destroy the old table.
-        if (tableReference !== null) {
-          tableReference.destroy();
-          $("#datatable").text("");
-        }
+      // Destroy the old table.
+      if (tableReference !== null) {
+        tableReference.destroy();
+        $("#datatable").text("");
+      }
 
-        // Read the Settings and get the single string for UI settings.
-        var tableClass = tableau.extensions.settings.get("table-classes");
-        $("#datatable").attr('class', '')
-        $("#datatable").addClass(tableClass);
+      // Read the Settings and get the single string for UI settings.
+      var tableClass = tableau.extensions.settings.get("table-classes");
+      $("#datatable").attr('class', '')
+      $("#datatable").addClass(tableClass);
 
-        // Read the Settings and create an array for the Buttons.
-        var buttons = [];
-        var clipboard = tableau.extensions.settings.get("export-clipboard");
-        if (clipboard == "Y") {
-          buttons.push('copy');
-        }
-        var csv = tableau.extensions.settings.get("export-csv");
-        if (csv == "Y") {
-          buttons.push('csv');
-        }
-        var excel = tableau.extensions.settings.get("export-excel");
-        if (excel == "Y") {
-          buttons.push('excel');
-        }
-        var pdf = tableau.extensions.settings.get("export-pdf");
-        if (pdf == "Y") {
-          buttons.push('pdf');
-        }
-        var print = tableau.extensions.settings.get("export-print");
-        if (print == "Y") {
-          buttons.push('print');
-        }
+      // Read the Settings and create an array for the Buttons.
+      var buttons = [];
+      var clipboard = tableau.extensions.settings.get("export-clipboard");
+      if (clipboard == "Y") {
+        buttons.push('copy');
+      }
+      var csv = tableau.extensions.settings.get("export-csv");
+      if (csv == "Y") {
+        buttons.push('csv');
+      }
+      var excel = tableau.extensions.settings.get("export-excel");
+      if (excel == "Y") {
+        buttons.push('excel');
+      }
+      var pdf = tableau.extensions.settings.get("export-pdf");
+      if (pdf == "Y") {
+        buttons.push('pdf');
+      }
+      var print = tableau.extensions.settings.get("export-print");
+      if (print == "Y") {
+        buttons.push('print');
+      }
 
-        // If there are 1 or more Export options ticked, then we will add the dom: 'Bfrtip'
-        // Else leave this out.
-        if (buttons.length > 0) {
-          tableReference = $('#datatable').DataTable({
-            dom: 'Bfrtip',
-            data: tableData,
-            columns: data,
-            responsive: true,
-            buttons: buttons,
-            bAutoWidth: false,
-            initComplete: datatableInitCallback,
-            drawCallback: datatableDrawCallback,
-            oLanguage: datatableLangObj
-          });
-        } else {
-          tableReference = $('#datatable').DataTable({
-            data: tableData,
-            columns: data,
-            responsive: true,
-            bAutoWidth: false,
-            initComplete: datatableInitCallback,
-            drawCallback: datatableDrawCallback,
-            oLanguage: datatableLangObj
-          });
-        }
-      })
-    } else { // summary data
-      worksheet.getSummaryDataAsync({ maxRows: max_no_records }).then(function (sumdata) {
-        // We will loop through our column names from our settings and save these into an array
-        // We will use this later in our datatable function.
-        // https://tableau.github.io/extensions-api/docs/interfaces/datatable.html#columns
-        var data = [];
-        // data.push({ title: "cb" }); // checkboxes, add dummy first column
-        var column_names = tableau.extensions.settings.get("column_names").split("|");
-        for (i = 0; i < column_names.length; i++) {
-          data.push({ title: column_names[i] });
-        }
-
-        // We have created an array to match the underlying data source and then
-        // looped through to populate our array with the value data set. We also added
-        // logic to read from the column names and column order from our configiration.
-        const worksheetData = sumdata.data;
-        var column_order = tableau.extensions.settings.get("column_order").split("|");
-        // var tableData = makeArray(sumdata.columns.length, sumdata.totalRowCount);
-        var tableData = makeArray(sumdata.columns.length, sumdata.totalRowCount);
-        for (var i = 0; i < tableData.length; i++) {
-          for (var j = 0; j < tableData[i].length; j++) {
-            tableData[i][j] = worksheetData[i][column_order[j] - 1].formattedValue;
-          }
-        }
-
-        // Destroy the old table.
-        if (tableReference !== null) {
-          tableReference.destroy();
-          $("#datatable").text("");
-        }
-
-        // Read the Settings and get the single string for UI settings.
-        var tableClass = tableau.extensions.settings.get("table-classes");
-        $("#datatable").attr('class', '')
-        $("#datatable").addClass(tableClass);
-
-        // Read the Settings and create an array for the Buttons.
-        var buttons = [];
-        var clipboard = tableau.extensions.settings.get("export-clipboard");
-        if (clipboard == "Y") {
-          buttons.push('copy');
-        }
-        var csv = tableau.extensions.settings.get("export-csv");
-        if (csv == "Y") {
-          buttons.push('csv');
-        }
-        var excel = tableau.extensions.settings.get("export-excel");
-        if (excel == "Y") {
-          buttons.push('excel');
-        }
-        var pdf = tableau.extensions.settings.get("export-pdf");
-        if (pdf == "Y") {
-          buttons.push('pdf');
-        }
-        var print = tableau.extensions.settings.get("export-print");
-        if (print == "Y") {
-          buttons.push('print');
-        }
-
-        // If there are 1 or more Export options ticked, then we will add the dom: 'Bfrtip'
-        // Else leave this out.
-        if (buttons.length > 0) {
-          tableReference = $('#datatable').DataTable({
-            dom: 'Bfrtip',
-            data: tableData,
-            columns: data,
-            columnDefs: [
-              {
-                targets: 0,
-                checkboxes: {
-                  selectRow: true,
-                  selectAll: true,
-                  stateSave: true
-                }
+      // If there are 1 or more Export options ticked, then we will add the dom: 'Bfrtip'
+      // Else leave this out.
+      if (buttons.length > 0) {
+        tableReference = $('#datatable').DataTable({
+          dom: 'Bfrtip',
+          data: tableData,
+          columns: data,
+          columnDefs: [
+            {
+              targets: 0,
+              checkboxes: {
+                selectRow: true,
+                selectAll: true,
+                stateSave: true
               }
-            ],
-            responsive: true,
-            buttons: buttons,
-            bAutoWidth: false,
-            rowGroup: true,
-            initComplete: datatableInitCallback,
-            drawCallback: datatableDrawCallback,
-            oLanguage: datatableLangObj
-          });
-        } else {
-          tableReference = $('#datatable').DataTable({
-            data: tableData,
-            columns: data,
-            columnDefs: [
-              {
-                targets: 0,
-                checkboxes: {
-                  selectRow: true,
-                  selectAll: true,
-                  stateSave: true
-                }
+            }
+          ],
+          responsive: true,
+          buttons: buttons,
+          bAutoWidth: false,
+          rowGroup: true,
+          initComplete: datatableInitCallback,
+          drawCallback: datatableDrawCallback,
+          oLanguage: datatableLangObj
+        });
+      } else {
+        tableReference = $('#datatable').DataTable({
+          data: tableData,
+          columns: data,
+          columnDefs: [
+            {
+              targets: 0,
+              checkboxes: {
+                selectRow: true,
+                selectAll: true,
+                stateSave: true
               }
-            ],
-            responsive: true,
-            bAutoWidth: false,
-            initComplete: datatableInitCallback,
-            drawCallback: datatableDrawCallback,
-            oLanguage: datatableLangObj
-          });
-        }
-      })
-    }
+            }
+          ],
+          responsive: true,
+          bAutoWidth: false,
+          initComplete: datatableInitCallback,
+          drawCallback: datatableDrawCallback,
+          oLanguage: datatableLangObj
+        });
+      }
+    })
   }
 
   function datatableInitCallback(settings, json) {
