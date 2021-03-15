@@ -23,7 +23,7 @@
       if (!extensionTracker) {
         extensionTracker = 0;
       }
-      $('#tracker').text("Extension launch counter: " + extensionTracker);
+      console.log("Extension launch counter: " + extensionTracker);
       extensionTracker = extensionTracker + 1;
       localStorage.setItem("tableau.extensions.datatables.tracker", extensionTracker);
 
@@ -107,6 +107,7 @@
       var data = [];
       // data.push({ title: "cb" }); // checkboxes, add dummy first column
       var column_names = tableau.extensions.settings.get("column_names").split("|");
+      data.push({ title: "x" }); // column name for checkboxes
       for (i = 0; i < column_names.length; i++) {
         data.push({ title: column_names[i] });
       }
@@ -114,10 +115,11 @@
       const worksheetData = sumdata.data;
       var column_order = tableau.extensions.settings.get("column_order").split("|");
       // var tableData = makeArray(sumdata.columns.length, sumdata.totalRowCount);
-      var tableData = makeArray(sumdata.columns.length, sumdata.totalRowCount);
+      var tableData = makeArray(sumdata.columns.length+1, sumdata.totalRowCount);
       for (var i = 0; i < tableData.length; i++) {
-        for (var j = 0; j < tableData[i].length; j++) {
-          tableData[i][j] = worksheetData[i][column_order[j] - 1].formattedValue;
+        tableData[i][0] = i + 1; // enumerate rows sequentially in the first column
+        for (var j = 1; j < tableData[i].length; j++) {
+          tableData[i][j] = worksheetData[i][column_order[j-1] - 1].formattedValue;
         }
       }
 
@@ -159,7 +161,9 @@
       // Else leave this out.
       if (buttons.length > 0) {
         tableReference = $('#datatable').DataTable({
+          buttons: buttons,
           dom: 'Bfrtip',
+          rowGroup: true,
           data: tableData,
           columns: data,
           columnDefs: [
@@ -167,15 +171,13 @@
               targets: 0,
               checkboxes: {
                 selectRow: true,
-                selectAll: true,
-                stateSave: true
+                selectAll: true
               }
             }
           ],
+          stateSave: true,
           responsive: true,
-          buttons: buttons,
           bAutoWidth: false,
-          rowGroup: true,
           initComplete: datatableInitCallback,
           drawCallback: datatableDrawCallback,
           oLanguage: datatableLangObj
@@ -189,11 +191,11 @@
               targets: 0,
               checkboxes: {
                 selectRow: true,
-                selectAll: true,
-                stateSave: true
+                selectAll: true
               }
             }
           ],
+          stateSave: true,
           responsive: true,
           bAutoWidth: false,
           initComplete: datatableInitCallback,
@@ -223,7 +225,7 @@
 
 
     // update buttons aria-label to include information about table it is bound to
-    table.buttons().each(function (item) {
+    $.each(table.buttons, function (item) {
       var $buttonNode = $(item.node);
 
       var ariaLabel = '';
