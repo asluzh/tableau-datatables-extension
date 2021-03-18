@@ -178,7 +178,7 @@
             targets: -1,
             orderable: false,
             data: null,
-            defaultContent: "<button>Review</button>"
+            defaultContent: "<button class='btn btn-primary'>Review</button>"
           }
         ],
         stateSave: true,
