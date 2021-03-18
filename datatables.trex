@@ -15,4 +15,9 @@
       <configure-context-menu-item />
     </context-menu>
     </dashboard-extension>
+  <resources>
+    <resource id="name">
+      <text locale="en_US">DataTables</text>
+    </resource>
+  </resources>
 </manifest>

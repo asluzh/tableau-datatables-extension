@@ -62,6 +62,7 @@
     // the configuration screen, otherwise we will clear the table and destroy the
     // reference.
     var sheetName = tableau.extensions.settings.get("worksheet");
+    var sheetNameFilter = tableau.extensions.settings.get("worksheetFilter");
     if (sheetName == undefined || sheetName == "" || sheetName == null) {
       $("#configure").show();
       $("#datatable").text("");
@@ -79,6 +80,9 @@
     // the worksheet object.
     var worksheet = worksheets.find(function (sheet) {
       return sheet.name === sheetName;
+    });
+    var worksheetFilter = worksheets.find(function (sheet) {
+      return sheet.name === sheetNameFilter;
     });
 
     // Retrieve values the other two values from the settings dialogue window.
@@ -107,20 +111,21 @@
       var data = [];
       // data.push({ title: "cb" }); // checkboxes, add dummy first column
       var column_names = tableau.extensions.settings.get("column_names").split("|");
-      data.push({ title: "x" }); // column name for checkboxes
       for (i = 0; i < column_names.length; i++) {
         data.push({ title: column_names[i] });
       }
+      data.push({ title: "" }); // column name for checkboxes
+      data.push({ title: "" }); // column name for review button
 
       const worksheetData = sumdata.data;
-      var column_order = tableau.extensions.settings.get("column_order").split("|");
+//      var column_order = tableau.extensions.settings.get("column_order").split("|");
       // var tableData = makeArray(sumdata.columns.length, sumdata.totalRowCount);
-      var tableData = makeArray(sumdata.columns.length+1, sumdata.totalRowCount);
+      var tableData = makeArray(sumdata.columns.length+2, sumdata.totalRowCount);
       for (var i = 0; i < tableData.length; i++) {
-        tableData[i][0] = i + 1; // enumerate rows sequentially in the first column
-        for (var j = 1; j < tableData[i].length; j++) {
-          tableData[i][j] = worksheetData[i][column_order[j-1] - 1].formattedValue;
+        for (var j = 0; j < tableData[i].length-2; j++) {
+          tableData[i][j] = worksheetData[i][j].formattedValue;
         }
+        tableData[i][tableData[i].length-2] = tableData[i][0]; // enumerate rows sequentially in the first column
       }
 
       // Destroy the old table.
@@ -157,52 +162,48 @@
         buttons.push('print');
       }
 
+      var dataTablesOptions = {
+        data: tableData,
+        columns: data,
+        columnDefs: [
+          {
+            targets: -2,
+            orderable: false,
+            checkboxes: {
+              selectRow: false,
+              selectAll: false
+            }
+          },
+          {
+            targets: -1,
+            orderable: false,
+            data: null,
+            defaultContent: "<button>Review</button>"
+          }
+        ],
+        stateSave: true,
+        responsive: true,
+        bAutoWidth: false,
+        initComplete: datatableInitCallback,
+        drawCallback: datatableDrawCallback,
+        oLanguage: datatableLangObj
+      };
       // If there are 1 or more Export options ticked, then we will add the dom: 'Bfrtip'
       // Else leave this out.
       if (buttons.length > 0) {
-        tableReference = $('#datatable').DataTable({
+        $.extend(dataTablesOptions, {
           buttons: buttons,
           dom: 'Bfrtip',
           rowGroup: true,
-          data: tableData,
-          columns: data,
-          columnDefs: [
-            {
-              targets: 0,
-              checkboxes: {
-                selectRow: true,
-                selectAll: true
-              }
-            }
-          ],
-          stateSave: true,
-          responsive: true,
-          bAutoWidth: false,
-          initComplete: datatableInitCallback,
-          drawCallback: datatableDrawCallback,
-          oLanguage: datatableLangObj
-        });
-      } else {
-        tableReference = $('#datatable').DataTable({
-          data: tableData,
-          columns: data,
-          columnDefs: [
-            {
-              targets: 0,
-              checkboxes: {
-                selectRow: true,
-                selectAll: true
-              }
-            }
-          ],
-          stateSave: true,
-          responsive: true,
-          bAutoWidth: false,
-          initComplete: datatableInitCallback,
-          drawCallback: datatableDrawCallback,
-          oLanguage: datatableLangObj
         });
       }
+      tableReference = $('#datatable').DataTable(dataTablesOptions);
+      $('#datatable tbody').on( 'click', 'button', function () {
+        var data = tableReference.row( $(this).parents('tr') ).data();
+        console.log( data[0] );
+        console.log( column_names[0] );
+        worksheetFilter.applyFilterAsync(column_names[0], [data[0]], tableau.FilterUpdateType.Replace);
+    } );
     })
   }
 

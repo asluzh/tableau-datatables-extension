@@ -80,6 +80,7 @@
     let dashboard = tableau.extensions.dashboardContent.dashboard;
     dashboard.worksheets.forEach(function (worksheet) {
       $("#selectWorksheet").append("<option value='" + worksheet.name + "'>" + worksheet.name + "</option>");
+      $("#selectWorksheetFilter").append("<option value='" + worksheet.name + "'>" + worksheet.name + "</option>");
     });
 
     // Add the column orders it exists
@@ -106,6 +107,7 @@
 
     // Initialise the tabs, select and attach functions to buttons.
     $("#selectWorksheet").val(tableau.extensions.settings.get("worksheet"));
+    $("#selectWorksheetFilter").val(tableau.extensions.settings.get("worksheetFilter"));
     $('#selectWorksheet').on('change', '', function (e) {
       columnsUpdate();
     });
@@ -159,6 +161,7 @@
 
     // Data settings
     tableau.extensions.settings.set("worksheet", $("#selectWorksheet").val());
+    tableau.extensions.settings.set("worksheetFilter", $("#selectWorksheetFilter").val());
 
     // Create a string which will hold the datatable.net css options called tableClass.
     // Also saves the individual Y and N so that we can restore the settings when you
