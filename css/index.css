@@ -5,3 +5,7 @@ body {
 .btn {
     padding: 8px 25px;
 }
+
+.dataTables_filter input {
+    max-height: 23px;
+}

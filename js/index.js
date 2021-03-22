@@ -162,6 +162,9 @@
         buttons.push('print');
       }
 
+      var action_btn_text = tableau.extensions.settings.get("action_btn_text");
+      var action_btn_style = tableau.extensions.settings.get("action_btn_style");
+
       var dataTablesOptions = {
         data: tableData,
         columns: data,
@@ -178,9 +181,10 @@
             targets: -1,
             orderable: false,
             data: null,
-            defaultContent: "<button class='btn btn-primary'>Review</button>"
+            defaultContent: "<button "+(action_btn_style?action_btn_style:"")+">"+action_btn_text+"</button>"
           }
         ],
+        lengthMenu: [ 5, 10, 15, 20 ],
         stateSave: true,
         responsive: true,
         bAutoWidth: false,

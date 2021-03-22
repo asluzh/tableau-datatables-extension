@@ -108,6 +108,8 @@
     // Initialise the tabs, select and attach functions to buttons.
     $("#selectWorksheet").val(tableau.extensions.settings.get("worksheet"));
     $("#selectWorksheetFilter").val(tableau.extensions.settings.get("worksheetFilter"));
+    $("#action_btn_text").val(tableau.extensions.settings.get("action_btn_text"));
+    $("#action_btn_style").val(tableau.extensions.settings.get("action_btn_style"));
     $('#selectWorksheet').on('change', '', function (e) {
       columnsUpdate();
     });
@@ -280,6 +282,9 @@
     // We save the column order and column name variables in the UI Namespace.
     tableau.extensions.settings.set("column_order", column_order);
     tableau.extensions.settings.set("column_names", column_name);
+
+    tableau.extensions.settings.set("action_btn_text", $("#action_btn_text").val());
+    tableau.extensions.settings.set("action_btn_style", $("#action_btn_style").val());
 
     // Call saveAsync to save the settings before calling closeDialog.
     tableau.extensions.settings.saveAsync().then((currentSettings) => {
