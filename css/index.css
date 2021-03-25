@@ -6,6 +6,25 @@ body {
     padding: 8px 25px;
 }
 
-.dataTables_filter input {
-    max-height: 23px;
+.dataTables_wrapper .dataTables_filter input {
+    padding: 1px;
+    border-radius: 2px;
+    margin-left: 5px;
+}
+
+.dataTables_wrapper .dataTables_length select {
+    border-radius: 2px;
+    padding: 1px;
+}
+
+#ctrl-show-selected {
+    border: 1px solid #aaa;
+    border-radius: 2px;
+    padding: 1px;
+    background-color: transparent;
+    margin-left: 200px;
+}
+
+.dataTables_length select, .dataTables_length label {
+    display: none;
 }

@@ -174,7 +174,14 @@
             orderable: false,
             checkboxes: {
               selectRow: false,
-              selectAll: false
+              selectAll: false,
+              selectCallback: function(nodes, selected) {
+                // If "Show all" is not selected
+                if($('#ctrl-show-selected').val() !== 'all'){
+                  // Redraw table to include/exclude selected row
+                  tableReference.draw(false);                  
+                }            
+              }
             }
           },
           {
@@ -207,12 +214,45 @@
         console.log( data[0] );
         console.log( column_names[0] );
         worksheetFilter.applyFilterAsync(column_names[0], [data[0]], tableau.FilterUpdateType.Replace);
-    } );
-    })
+      });
+      // Handle change event for "Show selected records" control
+      $('#ctrl-show-selected').on('change', function() {
+        var val = $(this).val();
+        // If all records should be displayed
+        if (val === 'all'){
+          $.fn.dataTable.ext.search.pop();
+          tableReference.draw();
+        }
+        // If selected records should be displayed
+        if (val === 'selected') {
+          $.fn.dataTable.ext.search.pop();
+          $.fn.dataTable.ext.search.push(
+            function (settings, data, dataIndex) {
+              // return ($(tableReference.row(dataIndex).node()).hasClass('selected')) ? true : false;
+              return ($(tableReference.row(dataIndex).node()).find('input[type=checkbox]').prop('checked')) ? true : false;
+            }
+          );
+          tableReference.draw();
+        }
+        // If selected records should not be displayed
+        if (val === 'not-selected') {
+          $.fn.dataTable.ext.search.pop();
+          $.fn.dataTable.ext.search.push(
+            function (settings, data, dataIndex){             
+              // return ($(tableReference.row(dataIndex).node()).hasClass('selected')) ? false : true;
+              return ($(tableReference.row(dataIndex).node()).find('input[type=checkbox]').prop('checked')) ? false : true;
+            }
+          );
+        tableReference.draw();
+        }
+      });
+
+    });
   }
 
   function datatableInitCallback(settings, json) {
     // insert table caption
+    console.log("datatableInitCallback");
     var table = settings.oInstance.api();
     var $node = $(table.table().node());
 
@@ -222,6 +262,8 @@
     // add screen reader only h2
     $('#datatable_wrapper').prepend('<h2 class="sr-only">' + sheetName + ' | Data Table Extension | Tableau</h2>');
 
+    // show reviewed checkbox
+    $('#datatable_wrapper').prepend('<select id="ctrl-show-selected"><option value="all" selected>Show all</option><option value="selected">Show selected</option><option value="not-selected">Show not selected</option></select>');
 
     // add screen readers only caption for table
     // make changes of caption announced by screen reader - used to update caption when sorting changed
@@ -273,7 +315,7 @@
   }
 
   function datatableDrawCallback(settings) {
-
+    console.log("datatableDrawCallback");
     var table = settings.oInstance.api();
     var $node = $(table.table().node());
 
