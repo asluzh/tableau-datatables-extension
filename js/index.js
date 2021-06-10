@@ -4,7 +4,7 @@
 
   // Creates a global table reference for future use.
   let tableReference = null;
-  let extensionTracker = null;
+  // let extensionTracker = null;
 
   // These variables will hold a reference to the unregister Event Listener functions.
   // https://tableau.github.io/extensions-api/docs/interfaces/dashboard.html#addeventlistener
@@ -19,13 +19,13 @@
     tableau.extensions.initializeAsync({ 'configure': configure }).then(function () {
       // calls a function to show the table. There will be plenty of logic in this one.
       renderDataTable();
-      extensionTracker = parseInt(localStorage.getItem("tableau.extensions.datatables.tracker"));
-      if (!extensionTracker) {
-        extensionTracker = 0;
-      }
-      console.log("Extension launch counter: " + extensionTracker);
-      extensionTracker = extensionTracker + 1;
-      localStorage.setItem("tableau.extensions.datatables.tracker", extensionTracker);
+      // extensionTracker = parseInt(localStorage.getItem("tableau.extensions.datatables.tracker"));
+      // if (!extensionTracker) {
+        // extensionTracker = 0;
+      // }
+      // console.log("Extension launch counter: " + extensionTracker);
+      // extensionTracker = extensionTracker + 1;
+      // localStorage.setItem("tableau.extensions.datatables.tracker", extensionTracker);
 
       // We add our Settings and Parameter listeners here  listener here.
       unregisterSettingsEventListener = tableau.extensions.settings.addEventListener(tableau.TableauEventType.SettingsChanged, (settingsEvent) => {
@@ -62,15 +62,19 @@
     // the configuration screen, otherwise we will clear the table and destroy the
     // reference.
     var sheetName = tableau.extensions.settings.get("worksheet");
-    var sheetNameFilter = tableau.extensions.settings.get("worksheetFilter");
+    var sheetNameFilter = tableau.extensions.settings.get("worksheet-filter");
+    var action_element = tableau.extensions.settings.get("action-element");
+    var checkbox_column = tableau.extensions.settings.get("checkbox-column") == "Y";
+    if (action_element) {console.log("action button YES");}
+    if (checkbox_column) {console.log("checkbox column YES");}
+
     if (sheetName == undefined || sheetName == "" || sheetName == null) {
       $("#configure").show();
       $("#datatable").text("");
       if (tableReference !== null) {
         tableReference.destroy();
       }
-      // Exit the function if no worksheet name is present !!!
-      return;
+      return; // exit the function if no worksheet name is present
     } else {
       // If a worksheet is selected, then we hide the configuration screen.
       $("#configure").hide();
@@ -108,24 +112,31 @@
       // We will loop through our column names from our settings and save these into an array
       // We will use this later in our datatable function.
       // https://tableau.github.io/extensions-api/docs/interfaces/datatable.html#columns
+      const worksheetData = sumdata.data;
+      var n_cols = sumdata.columns.length;
+      // if configured, reserve additional two columns for checkbox and button
+      var n_cols_ext = n_cols + (checkbox_column ? 1 : 0) + (action_element ? 1 : 0);
+      console.log(n_cols, n_cols_ext);
+
       var data = [];
       // data.push({ title: "cb" }); // checkboxes, add dummy first column
-      var column_names = tableau.extensions.settings.get("column_names").split("|");
-      for (i = 0; i < column_names.length; i++) {
+      var column_names = tableau.extensions.settings.get("column-names").split("|");
+      for (i = 0; i < column_names.length && i < n_cols; i++) {
         data.push({ title: column_names[i] });
       }
-      data.push({ title: "" }); // column name for checkboxes
-      data.push({ title: "" }); // column name for review button
+      if (checkbox_column) { data.push({ title: "" }); } // column name for checkboxes
+      if (action_element)  { data.push({ title: "" }); } // column name for action element / button
 
-      const worksheetData = sumdata.data;
-//      var column_order = tableau.extensions.settings.get("column_order").split("|");
+      //      var column_order = tableau.extensions.settings.get("column-order").split("|");
       // var tableData = makeArray(sumdata.columns.length, sumdata.totalRowCount);
-      var tableData = makeArray(sumdata.columns.length+2, sumdata.totalRowCount);
+      var tableData = makeArray(n_cols_ext, sumdata.totalRowCount);
       for (var i = 0; i < tableData.length; i++) {
-        for (var j = 0; j < tableData[i].length-2; j++) {
+        for (var j = 0; j < n_cols; j++) {
           tableData[i][j] = worksheetData[i][j].formattedValue;
         }
-        tableData[i][tableData[i].length-2] = tableData[i][0]; // enumerate rows sequentially in the first column
+        if (checkbox_column) {
+          tableData[i][n_cols] = tableData[i][0]; // transfer the value from the first column to checkbox column
+        }
       }
 
       // Destroy the old table.
@@ -141,56 +152,37 @@
 
       // Read the Settings and create an array for the Buttons.
       var buttons = [];
-      var clipboard = tableau.extensions.settings.get("export-clipboard");
-      if (clipboard == "Y") {
+      if (tableau.extensions.settings.get("copy-btn") == "Y") {
         buttons.push('copy');
       }
-      var csv = tableau.extensions.settings.get("export-csv");
-      if (csv == "Y") {
+      if (tableau.extensions.settings.get("export-csv-btn") == "Y") {
         buttons.push('csv');
       }
-      var excel = tableau.extensions.settings.get("export-excel");
-      if (excel == "Y") {
+      if (tableau.extensions.settings.get("export-excel-btn") == "Y") {
         buttons.push('excel');
       }
-      var pdf = tableau.extensions.settings.get("export-pdf");
-      if (pdf == "Y") {
+      if (tableau.extensions.settings.get("export-pdf-btn") == "Y") {
         buttons.push('pdf');
       }
-      var print = tableau.extensions.settings.get("export-print");
-      if (print == "Y") {
+      if (tableau.extensions.settings.get("print-btn") == "Y") {
         buttons.push('print');
       }
-
-      var action_btn_text = tableau.extensions.settings.get("action_btn_text");
-      var action_btn_style = tableau.extensions.settings.get("action_btn_style");
+      if (tableau.extensions.settings.get("select-btn-text")) {
+        buttons.push({
+          text: tableau.extensions.settings.get("select-btn-text"),
+          action: function ( e, dt, node, config ) {
+            var selected = dt.column(0, { filter : 'applied'}).data().toArray();
+            // console.log( selected );
+            // console.log( column_names[0] );
+            worksheetFilter.applyFilterAsync(column_names[0], selected, tableau.FilterUpdateType.Replace);
+          }
+        });
+      }
 
       var dataTablesOptions = {
         data: tableData,
         columns: data,
-        columnDefs: [
-          {
-            targets: -2,
-            orderable: false,
-            checkboxes: {
-              selectRow: false,
-              selectAll: false,
-              selectCallback: function(nodes, selected) {
-                // If "Show all" is not selected
-                if($('#ctrl-show-selected').val() !== 'all'){
-                  // Redraw table to include/exclude selected row
-                  tableReference.draw(false);                  
-                }            
-              }
-            }
-          },
-          {
-            targets: -1,
-            orderable: false,
-            data: null,
-            defaultContent: "<button "+(action_btn_style?action_btn_style:"")+">"+action_btn_text+"</button>"
-          }
-        ],
+        columnDefs: [],
         lengthMenu: [ 5, 10, 15, 20 ],
         stateSave: true,
         responsive: true,
@@ -205,9 +197,35 @@
         $.extend(dataTablesOptions, {
           buttons: buttons,
           dom: 'Bfrtip',
-          rowGroup: true,
+          rowGroup: true
         });
       }
+      if (checkbox_column) {
+        dataTablesOptions.columnDefs.push({
+          targets: n_cols,
+          orderable: false,
+          checkboxes: {
+            selectRow: false,
+            selectAll: false,
+            selectCallback: function(nodes, selected) {
+              // If "Show all" is not selected
+              if($('#ctrl-show-selected').val() !== 'all'){
+                // Redraw table to include/exclude selected row
+                tableReference.draw(false);                  
+              }            
+            }
+          }
+        });
+      }
+      if (action_element) {
+        dataTablesOptions.columnDefs.push({
+          targets: n_cols_ext-1,
+          orderable: false,
+          data: null,
+          defaultContent: action_element
+        });
+      }
+      console.log(dataTablesOptions);
       tableReference = $('#datatable').DataTable(dataTablesOptions);
       $('#datatable tbody').on( 'click', 'button', function () {
         var data = tableReference.row( $(this).parents('tr') ).data();
@@ -269,16 +287,16 @@
     // make changes of caption announced by screen reader - used to update caption when sorting changed
     $node.prepend($('<caption id="datatable_caption" class="sr-only" role="alert" aria-live="polite">' + sheetName + '</caption>'));
 
-
-
     // update buttons aria-label to include information about table it is bound to
     $.each(table.buttons, function (item) {
+    //table.buttons().each(function (item) {
       var $buttonNode = $(item.node);
 
       var ariaLabel = '';
 
       if ($buttonNode.hasClass('buttons-copy')) {
         ariaLabel = 'Copy' + (includeTableName ? ' ' + sheetName : '') + ' table';
+        console.log("added copy button");
       }
       else if ($buttonNode.hasClass('buttons-csv')) {
         ariaLabel = 'CSV of' + (includeTableName ? ' ' + sheetName : '') + ' table';

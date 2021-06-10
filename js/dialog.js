@@ -47,31 +47,36 @@
 
       $("#include-table-name").prop("checked", tableau.extensions.settings.get("include-table-name") == "Y" ? true : false);
 
-      // We restore the plugin settings.
-      if (tableau.extensions.settings.get("export-clipboard") == "Y") {
-        $("#export-clipboard").prop("checked", true);
+      // We restore the Buttons plugin settings.
+      if (tableau.extensions.settings.get("copy-btn") == "Y") {
+        $("#copy-btn").prop("checked", true);
       } else {
-        $("#export-clipboard").prop("checked", false);
+        $("#copy-btn").prop("checked", false);
       }
-      if (tableau.extensions.settings.get("export-excel") == "Y") {
-        $("#export-excel").prop("checked", true);
+      if (tableau.extensions.settings.get("export-excel-btn") == "Y") {
+        $("#export-excel-btn").prop("checked", true);
       } else {
-        $("#export-excel").prop("checked", false);
+        $("#export-excel-btn").prop("checked", false);
       }
-      if (tableau.extensions.settings.get("export-csv") == "Y") {
-        $("#export-csv").prop("checked", true);
+      if (tableau.extensions.settings.get("export-csv-btn") == "Y") {
+        $("#export-csv-btn").prop("checked", true);
       } else {
-        $("#export-csv").prop("checked", false);
+        $("#export-csv-btn").prop("checked", false);
       }
-      if (tableau.extensions.settings.get("export-pdf") == "Y") {
-        $("#export-pdf").prop("checked", true);
+      if (tableau.extensions.settings.get("export-pdf-btn") == "Y") {
+        $("#export-pdf-btn").prop("checked", true);
       } else {
-        $("#export-pdf").prop("checked", false);
+        $("#export-pdf-btn").prop("checked", false);
       }
-      if (tableau.extensions.settings.get("export-print") == "Y") {
-        $("#export-print").prop("checked", true);
+      if (tableau.extensions.settings.get("print-btn") == "Y") {
+        $("#print-btn").prop("checked", true);
       } else {
-        $("#export-print").prop("checked", false);
+        $("#print-btn").prop("checked", false);
+      }
+      if (tableau.extensions.settings.get("checkbox-column") == "Y") {
+        $("#checkbox-column").prop("checked", true);
+      } else {
+        $("#checkbox-column").prop("checked", false);
       }
     }
 
@@ -84,10 +89,10 @@
     });
 
     // Add the column orders it exists
-    var column_order = tableau.extensions.settings.get("column_order");
+    var column_order = tableau.extensions.settings.get("column-order");
     if (column_order != undefined && column_order.length > 0) {
-      var column_names_array = tableau.extensions.settings.get("column_names").split("|");
-      var column_order_array = tableau.extensions.settings.get("column_order").split("|");
+      var column_names_array = tableau.extensions.settings.get("column-names").split("|");
+      var column_order_array = tableau.extensions.settings.get("column-order").split("|");
       $("#sort-it ol").text("");
       for (var i = 0; i < column_names_array.length; i++) {
         //alert(column_names_array[i] + " : " + column_order_array[i]);
@@ -107,9 +112,9 @@
 
     // Initialise the tabs, select and attach functions to buttons.
     $("#selectWorksheet").val(tableau.extensions.settings.get("worksheet"));
-    $("#selectWorksheetFilter").val(tableau.extensions.settings.get("worksheetFilter"));
-    $("#action_btn_text").val(tableau.extensions.settings.get("action_btn_text"));
-    $("#action_btn_style").val(tableau.extensions.settings.get("action_btn_style"));
+    $("#selectWorksheetFilter").val(tableau.extensions.settings.get("worksheet-filter"));
+    $("#action-element").val(tableau.extensions.settings.get("action-element"));
+    $("#select-btn-text").val(tableau.extensions.settings.get("select-btn-text"));
     $('#selectWorksheet').on('change', '', function (e) {
       columnsUpdate();
     });
@@ -163,7 +168,7 @@
 
     // Data settings
     tableau.extensions.settings.set("worksheet", $("#selectWorksheet").val());
-    tableau.extensions.settings.set("worksheetFilter", $("#selectWorksheetFilter").val());
+    tableau.extensions.settings.set("worksheet-filter", $("#selectWorksheetFilter").val());
 
     // Create a string which will hold the datatable.net css options called tableClass.
     // Also saves the individual Y and N so that we can restore the settings when you
@@ -215,33 +220,38 @@
 
     tableau.extensions.settings.set("table-classes", tableClass);
 
-    // Saves the individual Y and N for the plugin settings so that we can restore this
+    // Saves the individual Y and N for the Buttons plugin settings so that we can restore this
     // when you open the configuration dialogue.
     // https://datatables.net/extensions/buttons/examples/html5/simple.html
-    if ($("#export-clipboard").is(":checked")) {
-      tableau.extensions.settings.set("export-clipboard", "Y");
+    if ($("#copy-btn").is(":checked")) {
+      tableau.extensions.settings.set("copy-btn", "Y");
     } else {
-      tableau.extensions.settings.set("export-clipboard", "N");
+      tableau.extensions.settings.set("copy-btn", "N");
     }
-    if ($("#export-excel").is(":checked")) {
-      tableau.extensions.settings.set("export-excel", "Y");
+    if ($("#export-excel-btn").is(":checked")) {
+      tableau.extensions.settings.set("export-excel-btn", "Y");
     } else {
-      tableau.extensions.settings.set("export-excel", "N");
+      tableau.extensions.settings.set("export-excel-btn", "N");
     }
-    if ($("#export-csv").is(":checked")) {
-      tableau.extensions.settings.set("export-csv", "Y");
+    if ($("#export-csv-btn").is(":checked")) {
+      tableau.extensions.settings.set("export-csv-btn", "Y");
     } else {
-      tableau.extensions.settings.set("export-csv", "N");
+      tableau.extensions.settings.set("export-csv-btn", "N");
     }
-    if ($("#export-pdf").is(":checked")) {
-      tableau.extensions.settings.set("export-pdf", "Y");
+    if ($("#export-pdf-btn").is(":checked")) {
+      tableau.extensions.settings.set("export-pdf-btn", "Y");
     } else {
-      tableau.extensions.settings.set("export-pdf", "N");
+      tableau.extensions.settings.set("export-pdf-btn", "N");
     }
-    if ($("#export-print").is(":checked")) {
-      tableau.extensions.settings.set("export-print", "Y");
+    if ($("#print-btn").is(":checked")) {
+      tableau.extensions.settings.set("print-btn", "Y");
     } else {
-      tableau.extensions.settings.set("export-print", "N");
+      tableau.extensions.settings.set("print-btn", "N");
+    }
+    if ($("#checkbox-column").is(":checked")) {
+      tableau.extensions.settings.set("checkbox-column", "Y");
+    } else {
+      tableau.extensions.settings.set("checkbox-column", "N");
     }
 
     // This gets the column information and saves the column order and column name.
@@ -280,11 +290,11 @@
     tableau.extensions.settings.set("col-count-row-header", $('#col-count-row-header').val());
 
     // We save the column order and column name variables in the UI Namespace.
-    tableau.extensions.settings.set("column_order", column_order);
-    tableau.extensions.settings.set("column_names", column_name);
+    tableau.extensions.settings.set("column-order", column_order);
+    tableau.extensions.settings.set("column-names", column_name);
 
-    tableau.extensions.settings.set("action_btn_text", $("#action_btn_text").val());
-    tableau.extensions.settings.set("action_btn_style", $("#action_btn_style").val());
+    tableau.extensions.settings.set("action-element", $("#action-element").val());
+    tableau.extensions.settings.set("select-btn-text", $("#select-btn-text").val());
 
     // Call saveAsync to save the settings before calling closeDialog.
     tableau.extensions.settings.saveAsync().then((currentSettings) => {

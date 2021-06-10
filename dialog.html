@@ -21,7 +21,7 @@
                                 <li class="tab col s3"><a href="#tab1">1. Data Source</a></li>
                                 <li class="tab col s3"><a href="#tab2">2. Columns</a></li>
                                 <li class="tab col s3"><a href="#tab3">3. Formatting</a></li>
-                                <li class="tab col s3"><a href="#tab4">4. Plugins</a></li>
+                                <li class="tab col s3"><a href="#tab4">4. Buttons</a></li>
                                 <li class="tab col s3"><a href="#tab5">About</a></li>
                             </ul>
                         </div>
@@ -42,8 +42,18 @@
                                 <select id="selectWorksheetFilter">
                                     <option value="" disabled selected>Choose Worksheet for Filter Event</option>
                                 </select>
-                                <input id="action_btn_text" type="text" /><label for="action_btn_text">Action button label</label>
-                                <input id="action_btn_style" type="text" /><label for="action_btn_style">Action button HTML tag style</label>
+                                <input id="action-element" type="text" /><label for="action-element">Optional: action element HTML code (e.g. button tag) - adds last column</label>
+                                <p>
+                                <label>
+                                    <input type="checkbox" class="filled-in" id="checkbox-column" />
+                                    <span class="option-header">
+                                        Show Checkbox Column
+                                    </span>
+                                </label>
+                                </p>
+                                <!-- <p class="option-description">
+                                    Check Highlight Sort Column to instructs DataTables' styling to draw a line between rows.
+                                </p> -->
                             </div>
                             <div class="col s6">
                                 <p>
@@ -177,7 +187,7 @@
                     <div class="row">
                         <div class="col s6">
                             <label>
-                                <input type="checkbox" class="filled-in" id="export-clipboard" />
+                                <input type="checkbox" class="filled-in" id="copy-btn" />
                                 <span class="option-header">
                                     Enable Copy to Clipboard
                                 </span>
@@ -188,7 +198,7 @@
                         </div>
                         <div class="col s6">
                             <label>
-                                <input type="checkbox" class="filled-in" id="export-excel" />
+                                <input type="checkbox" class="filled-in" id="export-excel-btn" />
                                 <span class="option-header">
                                     Enable Save as Excel (XLSX)
                                 </span>
@@ -201,7 +211,7 @@
                     <div class="row">
                         <div class="col s6">
                             <label>
-                                <input type="checkbox" class="filled-in" id="export-csv" />
+                                <input type="checkbox" class="filled-in" id="export-csv-btn" />
                                 <span class="option-header">
                                     Enable Save as CSV
                                 </span>
@@ -212,7 +222,7 @@
                         </div>
                         <div class="col s6">
                             <label>
-                                <input type="checkbox" class="filled-in" id="export-pdf" />
+                                <input type="checkbox" class="filled-in" id="export-pdf-btn" />
                                 <span class="option-header">
                                     Enable Save as PDF
                                 </span>
@@ -225,13 +235,19 @@
                     <div class="row">
                         <div class="col s6">
                             <label>
-                                <input type="checkbox" class="filled-in" id="export-print" />
+                                <input type="checkbox" class="filled-in" id="print-btn" />
                                 <span class="option-header">
                                     Enable Display a Print View
                                 </span>
                             </label>
                             <p class="option-description">
                                 Check Enable Display a Print View to enable this feature.
+                            </p>
+                        </div>
+                        <div class="col s6">
+                            <input id="select-btn-text" type="text" /><label for="select-btn-text">Select button label</label>
+                            <p class="option-description">
+                                Custom button to transfer the selection into worksheet for review. If empty, button is not shown.
                             </p>
                         </div>
                     </div>
@@ -243,7 +259,7 @@
                                 Name:
                             </td>
                             <td class="option-header">
-                                DataTables Extension by Andrey Sluzhivoy
+                                DataTables Extension by asluzh
                             </td>
                         </tr>
                         <tr>
@@ -267,7 +283,7 @@
                                 Original Repository (fork):
                             </td>
                             <td class="option-header">
-                                https://github.com/tableaumagic/tableau-datatables-extension
+                                https://github.com/asluzh/tableau-datatables-extension
                             </td>
                         </tr>
                         <tr>
