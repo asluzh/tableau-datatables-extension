@@ -42,18 +42,6 @@
                                 <select id="selectWorksheetFilter">
                                     <option value="" disabled selected>Choose Worksheet for Filter Event</option>
                                 </select>
-                                <input id="action-element" type="text" /><label for="action-element">Optional: action element HTML code (e.g. button tag) - adds last column</label>
-                                <p>
-                                <label>
-                                    <input type="checkbox" class="filled-in" id="checkbox-column" />
-                                    <span class="option-header">
-                                        Show Checkbox Column
-                                    </span>
-                                </label>
-                                </p>
-                                <!-- <p class="option-description">
-                                    Check Highlight Sort Column to instructs DataTables' styling to draw a line between rows.
-                                </p> -->
                             </div>
                             <div class="col s6">
                                 <p>
@@ -92,7 +80,19 @@
                                     <option value="0">None</option>
                                 </select>
                             </label>
-                        </div>
+                            <input id="action-element" type="text" /><label for="action-element">Optional: action element HTML code (e.g. button tag) - adds last column</label>
+                            <p>
+                            <label>
+                                <input type="checkbox" class="filled-in" id="checkbox-column" />
+                                <span class="option-header">
+                                    Show Checkbox Column
+                                </span>
+                            </label>
+                            </p>
+                            <!-- <p class="option-description">
+                                Check Highlight Sort Column to instructs DataTables' styling to draw a line between rows.
+                            </p> -->
+                    </div>
                     </div>
                 </div>
                 <div id="tab3" class="tab-pane col s12">
@@ -180,7 +180,32 @@
                                 Check Include Unique Table Name to instruct DataTables to include the table name within the programmatic name of all controls. Should be checked if more than one DataTables Extension is being used within a Tableau Dashboard.
                             </p>
                         </div>
-                        <div class="col s6"></div>
+                        <div class="col s6">
+                            <label>
+                                <input type="checkbox" class="filled-in" id="show-search-box" />
+                                <span class="option-header">
+                                    Show search input box
+                                </span>
+                            </label>
+                            <p class="option-description">
+                                Check this option to enable search input elements, which searches in all table columns.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col s6">
+                            <label>
+                                <input type="checkbox" class="filled-in" id="show-filter-row" />
+                                <span class="option-header">
+                                    Show additional row with search filters
+                                </span>
+                            </label>
+                            <p class="option-description">
+                                Check to enable this feature. An additional row will be added below the header row, where each column can be filtered individually.
+                            </p>
+                        </div>
+                        <div class="col s6">
+                        </div>
                     </div>
                 </div>
                 <div id="tab4" class="tab-pane col s12">
@@ -245,9 +270,22 @@
                             </p>
                         </div>
                         <div class="col s6">
+                            <label>
+                                <input type="checkbox" class="filled-in" id="colvis-btn" />
+                                <span class="option-header">
+                                    Enable Column Visibility button
+                                </span>
+                            </label>
+                            <p class="option-description">
+                                Check to enable this feature.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col s6">
                             <input id="select-btn-text" type="text" /><label for="select-btn-text">Select button label</label>
                             <p class="option-description">
-                                Custom button to transfer the selection into worksheet for review. If empty, button is not shown.
+                                Custom button to transfer the selection into worksheet for review. If empty, this button is not shown.
                             </p>
                         </div>
                     </div>

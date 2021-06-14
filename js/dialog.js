@@ -47,6 +47,18 @@
 
       $("#include-table-name").prop("checked", tableau.extensions.settings.get("include-table-name") == "Y" ? true : false);
 
+      // ASL: additional controls
+      if (tableau.extensions.settings.get("show-search-box") == "Y") {
+        $("#show-search-box").prop("checked", true);
+      } else {
+        $("#show-search-box").prop("checked", false);
+      }
+      if (tableau.extensions.settings.get("show-filter-row") == "Y") {
+        $("#show-filter-row").prop("checked", true);
+      } else {
+        $("#show-filter-row").prop("checked", false);
+      }
+
       // We restore the Buttons plugin settings.
       if (tableau.extensions.settings.get("copy-btn") == "Y") {
         $("#copy-btn").prop("checked", true);
@@ -72,6 +84,11 @@
         $("#print-btn").prop("checked", true);
       } else {
         $("#print-btn").prop("checked", false);
+      }
+      if (tableau.extensions.settings.get("colvis-btn") == "Y") {
+        $("#colvis-btn").prop("checked", true);
+      } else {
+        $("#colvis-btn").prop("checked", false);
       }
       if (tableau.extensions.settings.get("checkbox-column") == "Y") {
         $("#checkbox-column").prop("checked", true);
@@ -220,6 +237,18 @@
 
     tableau.extensions.settings.set("table-classes", tableClass);
 
+      // ASL: additional controls
+      if ($("#show-search-box").is(":checked")) {
+      tableau.extensions.settings.set("show-search-box", "Y");
+    } else {
+      tableau.extensions.settings.set("show-search-box", "N");
+    }
+    if ($("#show-filter-row").is(":checked")) {
+      tableau.extensions.settings.set("show-filter-row", "Y");
+    } else {
+      tableau.extensions.settings.set("show-filter-row", "N");
+    }
+
     // Saves the individual Y and N for the Buttons plugin settings so that we can restore this
     // when you open the configuration dialogue.
     // https://datatables.net/extensions/buttons/examples/html5/simple.html
@@ -247,6 +276,11 @@
       tableau.extensions.settings.set("print-btn", "Y");
     } else {
       tableau.extensions.settings.set("print-btn", "N");
+    }
+    if ($("#colvis-btn").is(":checked")) {
+      tableau.extensions.settings.set("colvis-btn", "Y");
+    } else {
+      tableau.extensions.settings.set("colvis-btn", "N");
     }
     if ($("#checkbox-column").is(":checked")) {
       tableau.extensions.settings.set("checkbox-column", "Y");

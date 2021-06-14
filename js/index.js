@@ -116,16 +116,16 @@
       var n_cols = sumdata.columns.length;
       // if configured, reserve additional two columns for checkbox and button
       var n_cols_ext = n_cols + (checkbox_column ? 1 : 0) + (action_element ? 1 : 0);
-      console.log(n_cols, n_cols_ext);
+      // console.log(n_cols, n_cols_ext);
 
-      var data = [];
-      // data.push({ title: "cb" }); // checkboxes, add dummy first column
+      var columns_array = [];
+      // columns_array.push({ title: "cb" }); // checkboxes, add dummy first column
       var column_names = tableau.extensions.settings.get("column-names").split("|");
       for (i = 0; i < column_names.length && i < n_cols; i++) {
-        data.push({ title: column_names[i] });
+        columns_array.push({ title: column_names[i] });
       }
-      if (checkbox_column) { data.push({ title: "" }); } // column name for checkboxes
-      if (action_element)  { data.push({ title: "" }); } // column name for action element / button
+      if (checkbox_column) { columns_array.push({ title: "" }); } // column name for checkboxes
+      if (action_element)  { columns_array.push({ title: "" }); } // column name for action element / button
 
       //      var column_order = tableau.extensions.settings.get("column-order").split("|");
       // var tableData = makeArray(sumdata.columns.length, sumdata.totalRowCount);
@@ -167,6 +167,13 @@
       if (tableau.extensions.settings.get("print-btn") == "Y") {
         buttons.push('print');
       }
+      if (tableau.extensions.settings.get("colvis-btn") == "Y") {
+        // buttons.push('colvis');
+        buttons.push({
+          extend: 'colvis',
+          columns: ':not(.sorting_disabled)'
+        });
+      }
       if (tableau.extensions.settings.get("select-btn-text")) {
         buttons.push({
           text: tableau.extensions.settings.get("select-btn-text"),
@@ -181,12 +188,15 @@
 
       var dataTablesOptions = {
         data: tableData,
-        columns: data,
+        columns: columns_array,
         columnDefs: [],
         lengthMenu: [ 5, 10, 15, 20 ],
         stateSave: true,
         responsive: true,
+        // searching: tableau.extensions.settings.get("show-search-box") == "Y",
         bAutoWidth: false,
+        orderCellsTop: true,
+        fixedHeader: true,
         initComplete: datatableInitCallback,
         drawCallback: datatableDrawCallback,
         oLanguage: datatableLangObj
@@ -204,6 +214,7 @@
         dataTablesOptions.columnDefs.push({
           targets: n_cols,
           orderable: false,
+          // className: 'noVis',
           checkboxes: {
             selectRow: false,
             selectAll: false,
@@ -221,6 +232,7 @@
         dataTablesOptions.columnDefs.push({
           targets: n_cols_ext-1,
           orderable: false,
+          // className: 'noVis',
           data: null,
           defaultContent: action_element
         });
@@ -233,37 +245,64 @@
         console.log( column_names[0] );
         worksheetFilter.applyFilterAsync(column_names[0], [data[0]], tableau.FilterUpdateType.Replace);
       });
+      if (tableau.extensions.settings.get('show-filter-row') == 'Y') {
+        $('#datatable thead tr')
+          .clone(true)
+          .find('th')
+          .removeClass('sorting_asc sorting_asc sorting')
+          .off('click')
+          .end()
+          .appendTo( '#datatable thead' );
+        $('#datatable thead tr:eq(1) th').each( function (i) {
+          // console.log($(this).parents('th').classList);//.classList.contains('sorting_enabled')); //.class('sorting_enabled')
+          var title = $(this).text();
+          $(this).html( '<input type="text" placeholder="Search '+title+'" />' )
+          $( 'input', this ).on( 'keyup change', function () {
+              if ( tableReference.column(i).search() !== this.value ) {
+                tableReference
+                      .column(i)
+                      .search( this.value )
+                      .draw();
+              }
+          } );
+        } );
+      }
+   
       // Handle change event for "Show selected records" control
-      $('#ctrl-show-selected').on('change', function() {
-        var val = $(this).val();
-        // If all records should be displayed
-        if (val === 'all'){
-          $.fn.dataTable.ext.search.pop();
+      if (checkbox_column) {
+        $('#ctrl-show-selected').on('change', function() {
+          var val = $(this).val();
+          // If all records should be displayed
+          if (val === 'all'){
+            $.fn.dataTable.ext.search.pop();
+            tableReference.draw();
+          }
+          // If selected records should be displayed
+          if (val === 'selected') {
+            $.fn.dataTable.ext.search.pop();
+            $.fn.dataTable.ext.search.push(
+              function (settings, data, dataIndex) {
+                // return ($(tableReference.row(dataIndex).node()).hasClass('selected')) ? true : false;
+                return ($(tableReference.row(dataIndex).node()).find('input[type=checkbox]').prop('checked')) ? true : false;
+              }
+            );
+            tableReference.draw();
+          }
+          // If selected records should not be displayed
+          if (val === 'not-selected') {
+            $.fn.dataTable.ext.search.pop();
+            $.fn.dataTable.ext.search.push(
+              function (settings, data, dataIndex){             
+                // return ($(tableReference.row(dataIndex).node()).hasClass('selected')) ? false : true;
+                return ($(tableReference.row(dataIndex).node()).find('input[type=checkbox]').prop('checked')) ? false : true;
+              }
+            );
           tableReference.draw();
-        }
-        // If selected records should be displayed
-        if (val === 'selected') {
-          $.fn.dataTable.ext.search.pop();
-          $.fn.dataTable.ext.search.push(
-            function (settings, data, dataIndex) {
-              // return ($(tableReference.row(dataIndex).node()).hasClass('selected')) ? true : false;
-              return ($(tableReference.row(dataIndex).node()).find('input[type=checkbox]').prop('checked')) ? true : false;
-            }
-          );
-          tableReference.draw();
-        }
-        // If selected records should not be displayed
-        if (val === 'not-selected') {
-          $.fn.dataTable.ext.search.pop();
-          $.fn.dataTable.ext.search.push(
-            function (settings, data, dataIndex){             
-              // return ($(tableReference.row(dataIndex).node()).hasClass('selected')) ? false : true;
-              return ($(tableReference.row(dataIndex).node()).find('input[type=checkbox]').prop('checked')) ? false : true;
-            }
-          );
-        tableReference.draw();
-        }
-      });
+          }
+        });
+      } else {
+        $('#ctrl-show-selected').hide();
+      }
 
     });
   }
@@ -275,7 +314,7 @@
     var $node = $(table.table().node());
 
     var sheetName = tableau.extensions.settings.get('worksheet');
-    var includeTableName = (tableau.extensions.settings.get('include-table-name') == 'Y' ? true : false);
+    var includeTableName = tableau.extensions.settings.get('include-table-name') == 'Y';
 
     // add screen reader only h2
     $('#datatable_wrapper').prepend('<h2 class="sr-only">' + sheetName + ' | Data Table Extension | Tableau</h2>');
@@ -296,7 +335,6 @@
 
       if ($buttonNode.hasClass('buttons-copy')) {
         ariaLabel = 'Copy' + (includeTableName ? ' ' + sheetName : '') + ' table';
-        console.log("added copy button");
       }
       else if ($buttonNode.hasClass('buttons-csv')) {
         ariaLabel = 'CSV of' + (includeTableName ? ' ' + sheetName : '') + ' table';
@@ -318,9 +356,11 @@
 
 
     // update search input label
-    var $searchEl = $('#datatable_filter input');
-    $searchEl.attr('aria-label', 'Search' + (includeTableName ? ' ' + sheetName : '') + ' table');
-
+    if (tableau.extensions.settings.get("show-search-box") == "Y") {
+      $('#datatable_filter input').attr('aria-label', 'Search' + (includeTableName ? ' ' + sheetName : '') + ' table');
+    } else {
+      $('#datatable_filter').hide();
+    }
 
     // set extension's iframe title
     if (window.frameElement) {
