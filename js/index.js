@@ -201,7 +201,7 @@
         dom: "lfrtip",
         columns: columns_array,
         columnDefs: [],
-        order: [[(checkbox_column==1?2:1), 'asc']],
+        order: [[(checkbox_column==1?1:0), 'asc']],
         lengthMenu: lengthMenuArray,
         stateSave: true,
         responsive: true,
@@ -214,7 +214,6 @@
         oLanguage: datatableLangObj
       };
       // If there are 1 or more Export options ticked, then we will add the dom: 'Bfrtip', else leave this out
-      // console.log(dataTablesOptions.lengthMenu); // debug
       if (buttons.length > 0) {
         // console.log("adding buttons");
         $.extend(dataTablesOptions, {
@@ -227,7 +226,6 @@
         dataTablesOptions.columnDefs.push({
           targets: checkbox_column-1,
           orderable: false,
-          // className: 'noVis',
           checkboxes: {
             selectRow: true,
             selectAll: true,
@@ -251,7 +249,6 @@
         dataTablesOptions.columnDefs.push({
           targets: action_element_column-1,
           orderable: false,
-          // className: 'noVis',
           data: null,
           defaultContent: action_element
         });
@@ -264,6 +261,9 @@
         // console.log( data[0] );
         // console.log( column_names[0] );
       });
+      if (lengthMenuArray.length == 1) {
+        $('.dataTables_length select, .dataTables_length label').hide();
+      }
       if (tableau.extensions.settings.get('show-filter-row') == 'Y') {
         $('#datatable thead tr')
           .clone(true)
@@ -274,16 +274,21 @@
           .appendTo( '#datatable thead' );
         $('#datatable thead tr:eq(1) th').each( function (i) {
           // console.log($(this).parents('th').classList);//.classList.contains('sorting_enabled')); //.class('sorting_enabled')
+          // console.log($(this));
           var title = $(this).text();
-          $(this).html( '<input type="text" placeholder="'+title+'" />' )
-          $('input', this).on('keyup change', function () {
+          if ($(this).hasClass("dt-checkboxes-cell")) {
+            $(this).html('');
+          } else {
+            $(this).html( '<input type="text" placeholder="'+title+'" size="15" />' );
+            $('input', this).on('keyup change', function () {
               if ( tableReference.column(i).search() !== this.value ) {
                 tableReference.column(i)
                   .search( this.value )
                   .draw();
               }
-          } );
-        } );
+            });
+          }
+        });
       }
    
       // Handle change event for "Show selected records" control
