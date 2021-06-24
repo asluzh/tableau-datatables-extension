@@ -64,9 +64,12 @@
     var sheetName = tableau.extensions.settings.get("worksheet");
     var sheetNameFilter = tableau.extensions.settings.get("worksheet-filter");
     var action_element = tableau.extensions.settings.get("action-element");
-    var checkbox_column = tableau.extensions.settings.get("checkbox-column") == "Y";
-    if (action_element) {console.log("action button YES");}
-    if (checkbox_column) {console.log("checkbox column YES");}
+    var action_element_column = parseInt(tableau.extensions.settings.get("action-element-column"));
+    var checkbox_column = parseInt(tableau.extensions.settings.get("checkbox-column"));
+    var checkbox_options = tableau.extensions.settings.get("checkbox-options") == "Y";
+    var checkbox_apply = tableau.extensions.settings.get("checkbox-apply") == "Y";
+   console.log("action_element_column: ", action_element_column);
+   console.log("checkbox column: ", checkbox_column);
 
     if (sheetName == undefined || sheetName == "" || sheetName == null) {
       $("#configure").show();
@@ -115,27 +118,31 @@
       const worksheetData = sumdata.data;
       var n_cols = sumdata.columns.length;
       // if configured, reserve additional two columns for checkbox and button
-      var n_cols_ext = n_cols + (checkbox_column ? 1 : 0) + (action_element ? 1 : 0);
+      var n_cols_ext = n_cols + (checkbox_column ? 1 : 0) + (action_element_column ? 1 : 0);
       // console.log(n_cols, n_cols_ext);
 
       var columns_array = [];
       // columns_array.push({ title: "cb" }); // checkboxes, add dummy first column
       var column_names = tableau.extensions.settings.get("column-names").split("|");
       for (i = 0; i < column_names.length && i < n_cols; i++) {
+        if (i == checkbox_column-1)       { columns_array.push({ title: "" }); } // column name for checkboxes
+        if (i == action_element_column-1) { columns_array.push({ title: "" }); } // column name for action element / button
         columns_array.push({ title: column_names[i] });
       }
-      if (checkbox_column) { columns_array.push({ title: "" }); } // column name for checkboxes
-      if (action_element)  { columns_array.push({ title: "" }); } // column name for action element / button
 
-      //      var column_order = tableau.extensions.settings.get("column-order").split("|");
+      // var column_order = tableau.extensions.settings.get("column-order").split("|");
       // var tableData = makeArray(sumdata.columns.length, sumdata.totalRowCount);
       var tableData = makeArray(n_cols_ext, sumdata.totalRowCount);
       for (var i = 0; i < tableData.length; i++) {
-        for (var j = 0; j < n_cols; j++) {
-          tableData[i][j] = worksheetData[i][j].formattedValue;
-        }
-        if (checkbox_column) {
-          tableData[i][n_cols] = tableData[i][0]; // transfer the value from the first column to checkbox column
+        for (var j = 0, k = 0; j < n_cols; j++, k++) {
+          if (k == checkbox_column-1) {
+            tableData[i][k] = worksheetData[i][0].formattedValue;
+            k++;
+          }
+          if (k == action_element_column-1) {
+            k++;
+          }
+          tableData[i][k] = worksheetData[i][j].formattedValue;
         }
       }
 
@@ -186,11 +193,16 @@
         });
       }
 
+      var lengthMenuArray = tableau.extensions.settings.get("items-per-page").split(',').map(function(n) {
+        return parseInt(n);
+      });
       var dataTablesOptions = {
         data: tableData,
+        dom: "lfrtip",
         columns: columns_array,
         columnDefs: [],
-        lengthMenu: [ 5, 10, 15, 20 ],
+        order: [[(checkbox_column==1?2:1), 'asc']],
+        lengthMenu: lengthMenuArray,
         stateSave: true,
         responsive: true,
         // searching: tableau.extensions.settings.get("show-search-box") == "Y",
@@ -201,36 +213,43 @@
         drawCallback: datatableDrawCallback,
         oLanguage: datatableLangObj
       };
-      // If there are 1 or more Export options ticked, then we will add the dom: 'Bfrtip'
-      // Else leave this out.
+      // If there are 1 or more Export options ticked, then we will add the dom: 'Bfrtip', else leave this out
+      // console.log(dataTablesOptions.lengthMenu); // debug
       if (buttons.length > 0) {
+        // console.log("adding buttons");
         $.extend(dataTablesOptions, {
+          dom: 'Blfrtip',
           buttons: buttons,
-          dom: 'Bfrtip',
           rowGroup: true
         });
       }
       if (checkbox_column) {
         dataTablesOptions.columnDefs.push({
-          targets: n_cols,
+          targets: checkbox_column-1,
           orderable: false,
           // className: 'noVis',
           checkboxes: {
-            selectRow: false,
-            selectAll: false,
+            selectRow: true,
+            selectAll: true,
             selectCallback: function(nodes, selected) {
+              console.log("selectCallback checkboxes");
               // If "Show all" is not selected
               if($('#ctrl-show-selected').val() !== 'all'){
                 // Redraw table to include/exclude selected row
                 tableReference.draw(false);                  
-              }            
+              }
+              if (checkbox_apply) {
+                var rows_selected = tableReference.column(checkbox_column-1).checkboxes.selected().toArray();
+                console.log(rows_selected);
+                worksheetFilter.applyFilterAsync(column_names[0], rows_selected, tableau.FilterUpdateType.Replace);
+              }
             }
           }
         });
       }
-      if (action_element) {
+      if (action_element_column) {
         dataTablesOptions.columnDefs.push({
-          targets: n_cols_ext-1,
+          targets: action_element_column-1,
           orderable: false,
           // className: 'noVis',
           data: null,
@@ -241,9 +260,9 @@
       tableReference = $('#datatable').DataTable(dataTablesOptions);
       $('#datatable tbody').on( 'click', 'button', function () {
         var data = tableReference.row( $(this).parents('tr') ).data();
-        console.log( data[0] );
-        console.log( column_names[0] );
         worksheetFilter.applyFilterAsync(column_names[0], [data[0]], tableau.FilterUpdateType.Replace);
+        // console.log( data[0] );
+        // console.log( column_names[0] );
       });
       if (tableau.extensions.settings.get('show-filter-row') == 'Y') {
         $('#datatable thead tr')
@@ -256,20 +275,19 @@
         $('#datatable thead tr:eq(1) th').each( function (i) {
           // console.log($(this).parents('th').classList);//.classList.contains('sorting_enabled')); //.class('sorting_enabled')
           var title = $(this).text();
-          $(this).html( '<input type="text" placeholder="Search '+title+'" />' )
-          $( 'input', this ).on( 'keyup change', function () {
+          $(this).html( '<input type="text" placeholder="'+title+'" />' )
+          $('input', this).on('keyup change', function () {
               if ( tableReference.column(i).search() !== this.value ) {
-                tableReference
-                      .column(i)
-                      .search( this.value )
-                      .draw();
+                tableReference.column(i)
+                  .search( this.value )
+                  .draw();
               }
           } );
         } );
       }
    
       // Handle change event for "Show selected records" control
-      if (checkbox_column) {
+      if (checkbox_options) {
         $('#ctrl-show-selected').on('change', function() {
           var val = $(this).val();
           // If all records should be displayed
@@ -319,7 +337,7 @@
     // add screen reader only h2
     $('#datatable_wrapper').prepend('<h2 class="sr-only">' + sheetName + ' | Data Table Extension | Tableau</h2>');
 
-    // show reviewed checkbox
+    // show checkbox filter options
     $('#datatable_wrapper').prepend('<select id="ctrl-show-selected"><option value="all" selected>Show all</option><option value="selected">Show selected</option><option value="not-selected">Show not selected</option></select>');
 
     // add screen readers only caption for table
@@ -353,7 +371,6 @@
         $buttonNode.attr('aria-label', ariaLabel);
       }
     });
-
 
     // update search input label
     if (tableau.extensions.settings.get("show-search-box") == "Y") {

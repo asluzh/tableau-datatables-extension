@@ -81,18 +81,31 @@
                                 </select>
                             </label>
                             <input id="action-element" type="text" /><label for="action-element">Optional: action element HTML code (e.g. button tag) - adds last column</label>
+                            <input id="action-element-column" type="text" /><label for="action-element-column">Optional: column number for action element</label>
+                            <input id="checkbox-column" type="text" /><label for="checkbox-column">Optional: column number for checkboxes</label>
                             <p>
-                            <label>
-                                <input type="checkbox" class="filled-in" id="checkbox-column" />
-                                <span class="option-header">
-                                    Show Checkbox Column
-                                </span>
-                            </label>
+                                <label>
+                                    <input type="checkbox" class="filled-in" id="checkbox-options" />
+                                    <span class="option-header">
+                                        Show Checkbox Options drop-down (all/selected/not selected)
+                                    </span>
+                                </label>
                             </p>
-                            <!-- <p class="option-description">
-                                Check Highlight Sort Column to instructs DataTables' styling to draw a line between rows.
-                            </p> -->
-                    </div>
+                            <p>
+                                <label>
+                                    <input type="checkbox" class="filled-in" id="checkbox-apply" />
+                                    <span class="option-header">
+                                        Checkbox automatically applies selection into target sheet
+                                    </span>
+                                </label>
+                            </p>
+                            <p>
+                                <input id="items-per-page" type="text" /><label for="items-per-page">Items per page choice</label>
+                                <p class="option-description">
+                                    List of options for items per page selector. If empty or one value, items per page is fixed (default is 5).
+                                </p>
+                            </p>
+                        </div>
                     </div>
                 </div>
                 <div id="tab3" class="tab-pane col s12">

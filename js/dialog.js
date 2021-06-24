@@ -90,10 +90,15 @@
       } else {
         $("#colvis-btn").prop("checked", false);
       }
-      if (tableau.extensions.settings.get("checkbox-column") == "Y") {
-        $("#checkbox-column").prop("checked", true);
+      if (tableau.extensions.settings.get("checkbox-options") == "Y") {
+        $("#checkbox-options").prop("checked", true);
       } else {
-        $("#checkbox-column").prop("checked", false);
+        $("#checkbox-options").prop("checked", false);
+      }
+      if (tableau.extensions.settings.get("checkbox-apply") == "Y") {
+        $("#checkbox-apply").prop("checked", true);
+      } else {
+        $("#checkbox-apply").prop("checked", false);
       }
     }
 
@@ -130,7 +135,10 @@
     // Initialise the tabs, select and attach functions to buttons.
     $("#selectWorksheet").val(tableau.extensions.settings.get("worksheet"));
     $("#selectWorksheetFilter").val(tableau.extensions.settings.get("worksheet-filter"));
+    $("#items-per-page").val(tableau.extensions.settings.get("items-per-page"));
     $("#action-element").val(tableau.extensions.settings.get("action-element"));
+    $("#action-element-column").val(tableau.extensions.settings.get("action-element-column"));
+    $("#checkbox-column").val(tableau.extensions.settings.get("checkbox-column"));
     $("#select-btn-text").val(tableau.extensions.settings.get("select-btn-text"));
     $('#selectWorksheet').on('change', '', function (e) {
       columnsUpdate();
@@ -282,11 +290,23 @@
     } else {
       tableau.extensions.settings.set("colvis-btn", "N");
     }
-    if ($("#checkbox-column").is(":checked")) {
-      tableau.extensions.settings.set("checkbox-column", "Y");
+    if ($("#checkbox-options").is(":checked")) {
+      tableau.extensions.settings.set("checkbox-options", "Y");
     } else {
-      tableau.extensions.settings.set("checkbox-column", "N");
+      tableau.extensions.settings.set("checkbox-options", "N");
     }
+    if ($("#checkbox-apply").is(":checked")) {
+      tableau.extensions.settings.set("checkbox-apply", "Y");
+    } else {
+      tableau.extensions.settings.set("checkbox-apply", "N");
+    }
+    var items_per_page = $("#items-per-page").val();
+    if (!items_per_page) { items_per_page = "5"; }
+    tableau.extensions.settings.set("items-per-page", items_per_page);
+    tableau.extensions.settings.set("action-element", $("#action-element").val());
+    tableau.extensions.settings.set("action-element-column", $("#action-element-column").val());
+    tableau.extensions.settings.set("checkbox-column", $("#checkbox-column").val());
+    tableau.extensions.settings.set("select-btn-text", $("#select-btn-text").val());
 
     // This gets the column information and saves the column order and column name.
     // For example, if you have a data source with three columns and then reorder
@@ -326,9 +346,6 @@
     // We save the column order and column name variables in the UI Namespace.
     tableau.extensions.settings.set("column-order", column_order);
     tableau.extensions.settings.set("column-names", column_name);
-
-    tableau.extensions.settings.set("action-element", $("#action-element").val());
-    tableau.extensions.settings.set("select-btn-text", $("#select-btn-text").val());
 
     // Call saveAsync to save the settings before calling closeDialog.
     tableau.extensions.settings.saveAsync().then((currentSettings) => {
