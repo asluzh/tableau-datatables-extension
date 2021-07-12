@@ -265,6 +265,7 @@
         $('.dataTables_length select, .dataTables_length label').hide();
       }
       if (tableau.extensions.settings.get('show-filter-row') == 'Y') {
+        var filter_input_size = tableau.extensions.settings.get('filter-row-input-size');
         $('#datatable thead tr')
           .clone(true)
           .find('th')
@@ -279,7 +280,7 @@
           if ($(this).hasClass("dt-checkboxes-cell")) {
             $(this).html('');
           } else {
-            $(this).html( '<input type="text" placeholder="'+title+'" size="15" />' );
+            $(this).html( '<input type="text" placeholder="'+title+'" size="'+filter_input_size+'" />' );
             $('input', this).on('keyup change', function () {
               if ( tableReference.column(i).search() !== this.value ) {
                 tableReference.column(i)

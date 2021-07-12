@@ -139,6 +139,7 @@
     $("#action-element").val(tableau.extensions.settings.get("action-element"));
     $("#action-element-column").val(tableau.extensions.settings.get("action-element-column"));
     $("#checkbox-column").val(tableau.extensions.settings.get("checkbox-column"));
+    $("#filter-row-input-size").val(tableau.extensions.settings.get("filter-row-input-size"));
     $("#select-btn-text").val(tableau.extensions.settings.get("select-btn-text"));
     $('#selectWorksheet').on('change', '', function (e) {
       columnsUpdate();
@@ -306,6 +307,7 @@
     tableau.extensions.settings.set("action-element", $("#action-element").val());
     tableau.extensions.settings.set("action-element-column", $("#action-element-column").val());
     tableau.extensions.settings.set("checkbox-column", $("#checkbox-column").val());
+    tableau.extensions.settings.set("filter-row-input-size", $("#filter-row-input-size").val());
     tableau.extensions.settings.set("select-btn-text", $("#select-btn-text").val());
 
     // This gets the column information and saves the column order and column name.
