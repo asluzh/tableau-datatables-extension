@@ -3,15 +3,15 @@
 (function () {
 
   // Creates a global table reference for future use.
-  let tableReference = null;
-  // let extensionTracker = null;
+  var tableReference = null;
+  var showSelectedOption = "all";
 
   // These variables will hold a reference to the unregister Event Listener functions.
   // https://tableau.github.io/extensions-api/docs/interfaces/dashboard.html#addeventlistener
-  let unregisterSettingsEventListener = null;
-  let unregisterFilterEventListener = null;
-  let unregisterMarkSelectionEventListener = null;
-  let unregisterParameterEventListener = null;
+  var unregisterSettingsEventListener = null;
+  var unregisterFilterEventListener = null;
+  var unregisterMarkSelectionEventListener = null;
+  var unregisterParameterEventListener = null;
 
   $(document).ready(function () {
     // Add the configure option in the initialiseAsync to call the configure function
@@ -64,12 +64,19 @@
     var sheetName = tableau.extensions.settings.get("worksheet");
     var sheetNameFilter = tableau.extensions.settings.get("worksheet-filter");
     var action_element = tableau.extensions.settings.get("action-element");
-    var action_element_column = parseInt(tableau.extensions.settings.get("action-element-column"));
-    var checkbox_column = parseInt(tableau.extensions.settings.get("checkbox-column"));
+    var action_element_column = tableau.extensions.settings.get("action-element-column");
+    if (action_element_column) {
+      action_element_column = parseInt(action_element_column);
+      console.log("action_element_column: ", action_element_column);
+    }
+    var checkbox_column = tableau.extensions.settings.get("checkbox-column");
+    if (checkbox_column) {
+      checkbox_column = parseInt(checkbox_column);
+      console.log("checkbox column: ", checkbox_column);
+    }
     var checkbox_options = tableau.extensions.settings.get("checkbox-options") == "Y";
     var checkbox_apply = tableau.extensions.settings.get("checkbox-apply") == "Y";
-   console.log("action_element_column: ", action_element_column);
-   console.log("checkbox column: ", checkbox_column);
+    var column_classes = tableau.extensions.settings.get("column-classes").split("|");
 
     if (sheetName == undefined || sheetName == "" || sheetName == null) {
       $("#configure").show();
@@ -125,13 +132,12 @@
       // columns_array.push({ title: "cb" }); // checkboxes, add dummy first column
       var column_names = tableau.extensions.settings.get("column-names").split("|");
       for (i = 0; i < column_names.length && i < n_cols; i++) {
-        if (i == checkbox_column-1)       { columns_array.push({ title: "" }); } // column name for checkboxes
-        if (i == action_element_column-1) { columns_array.push({ title: "" }); } // column name for action element / button
+        if (checkbox_column && i == checkbox_column-1)             { columns_array.push({ title: "" }); } // column name for checkboxes
+        if (action_element_column && i == action_element_column-1) { columns_array.push({ title: "" }); } // column name for action element / button
         columns_array.push({ title: column_names[i] });
       }
 
-      // var column_order = tableau.extensions.settings.get("column-order").split("|");
-      // var tableData = makeArray(sumdata.columns.length, sumdata.totalRowCount);
+      var column_order = tableau.extensions.settings.get("column-order").split("|");
       var tableData = makeArray(n_cols_ext, sumdata.totalRowCount);
       for (var i = 0; i < tableData.length; i++) {
         for (var j = 0, k = 0; j < n_cols; j++, k++) {
@@ -142,7 +148,7 @@
           if (k == action_element_column-1) {
             k++;
           }
-          tableData[i][k] = worksheetData[i][j].formattedValue;
+          tableData[i][k] = worksheetData[i][column_order[j]-1].formattedValue;
         }
       }
 
@@ -232,7 +238,7 @@
             selectCallback: function(nodes, selected) {
               console.log("selectCallback checkboxes");
               // If "Show all" is not selected
-              if($('#ctrl-show-selected').val() !== 'all'){
+              if ($('#ctrl-show-selected').val() !== 'all') {
                 // Redraw table to include/exclude selected row
                 tableReference.draw(false);                  
               }
@@ -244,6 +250,16 @@
             }
           }
         });
+        dataTablesOptions.stateSaveParams = function(settings, data) {
+          console.log("stateSaveParams");
+          data.selected = showSelectedOption;
+          // console.log(showSelectedOption);
+        };
+        dataTablesOptions.stateLoadParams = function(settings, data) {
+          console.log("stateLoadParams");
+          showSelectedOption = data.selected;
+          // console.log(showSelectedOption);
+        };
       }
       if (action_element_column) {
         dataTablesOptions.columnDefs.push({
@@ -253,8 +269,20 @@
           defaultContent: action_element
         });
       }
+      if (Array.isArray(column_classes)) {
+        column_classes.forEach(function(el,i) {
+          if (el) {
+            dataTablesOptions.columnDefs.push({
+              targets: i,
+              className: el
+            });
+          }
+        });
+      }
       console.log(dataTablesOptions);
+
       tableReference = $('#datatable').DataTable(dataTablesOptions);
+
       $('#datatable tbody').on( 'click', 'button', function () {
         var data = tableReference.row( $(this).parents('tr') ).data();
         worksheetFilter.applyFilterAsync(column_names[0], [data[0]], tableau.FilterUpdateType.Replace);
@@ -264,8 +292,9 @@
       if (lengthMenuArray.length == 1) {
         $('.dataTables_length select, .dataTables_length label').hide();
       }
+      var state = tableReference.state.loaded();
       if (tableau.extensions.settings.get('show-filter-row') == 'Y') {
-        var filter_input_size = tableau.extensions.settings.get('filter-row-input-size');
+        var filter_row_input_size = tableau.extensions.settings.get('filter-row-input-size').split("|");
         $('#datatable thead tr')
           .clone(true)
           .find('th')
@@ -280,7 +309,10 @@
           if ($(this).hasClass("dt-checkboxes-cell")) {
             $(this).html('');
           } else {
-            $(this).html( '<input type="text" placeholder="'+title+'" size="'+filter_input_size+'" />' );
+            var input_size = filter_row_input_size[i] || "10";
+            $(this).html( '<input type="text" placeholder="'+title+'" size="'+input_size+'" />' );
+            var colSearch = state.columns[i].search;
+            $('input', this).val( colSearch.search );
             $('input', this).on('keyup change', function () {
               if ( tableReference.column(i).search() !== this.value ) {
                 tableReference.column(i)
@@ -290,39 +322,35 @@
             });
           }
         });
+        tableReference.draw();
       }
    
       // Handle change event for "Show selected records" control
       if (checkbox_options) {
         $('#ctrl-show-selected').on('change', function() {
-          var val = $(this).val();
+          showSelectedOption = $(this).val();
+          $.fn.dataTable.ext.search.pop();
           // If all records should be displayed
-          if (val === 'all'){
-            $.fn.dataTable.ext.search.pop();
-            tableReference.draw();
-          }
+          if (showSelectedOption === 'all') {}
           // If selected records should be displayed
-          if (val === 'selected') {
-            $.fn.dataTable.ext.search.pop();
+          if (showSelectedOption === 'selected') {
             $.fn.dataTable.ext.search.push(
               function (settings, data, dataIndex) {
                 // return ($(tableReference.row(dataIndex).node()).hasClass('selected')) ? true : false;
                 return ($(tableReference.row(dataIndex).node()).find('input[type=checkbox]').prop('checked')) ? true : false;
               }
             );
-            tableReference.draw();
           }
           // If selected records should not be displayed
-          if (val === 'not-selected') {
-            $.fn.dataTable.ext.search.pop();
+          if (showSelectedOption === 'not-selected') {
             $.fn.dataTable.ext.search.push(
               function (settings, data, dataIndex){             
                 // return ($(tableReference.row(dataIndex).node()).hasClass('selected')) ? false : true;
                 return ($(tableReference.row(dataIndex).node()).find('input[type=checkbox]').prop('checked')) ? false : true;
               }
             );
-          tableReference.draw();
           }
+          tableReference.draw();
         });
       } else {
         $('#ctrl-show-selected').hide();
@@ -345,6 +373,26 @@
 
     // show checkbox filter options
     $('#datatable_wrapper').prepend('<select id="ctrl-show-selected"><option value="all" selected>Show all</option><option value="selected">Show selected</option><option value="not-selected">Show not selected</option></select>');
+    $('#ctrl-show-selected option[value="'+showSelectedOption+'"]').prop('selected', true);
+    // If selected records should be displayed
+    if (showSelectedOption === 'selected') {
+      $.fn.dataTable.ext.search.push(
+        function (settings, data, dataIndex) {
+          // return ($(tableReference.row(dataIndex).node()).hasClass('selected')) ? true : false;
+          return ($(table.row(dataIndex).node()).find('input[type=checkbox]').prop('checked')) ? true : false;
+        }
+      );
+    }
+    // If selected records should not be displayed
+    if (showSelectedOption === 'not-selected') {
+      $.fn.dataTable.ext.search.push(
+        function (settings, data, dataIndex){             
+          // return ($(tableReference.row(dataIndex).node()).hasClass('selected')) ? false : true;
+          return ($(table.row(dataIndex).node()).find('input[type=checkbox]').prop('checked')) ? false : true;
+        }
+      );
+    }
+    table.draw();
 
     // add screen readers only caption for table
     // make changes of caption announced by screen reader - used to update caption when sorting changed
@@ -514,10 +562,9 @@
   // This is called when you click on the Configure button.
   function configure() {
 
-    let popupUrl =
+    var popupUrl =
       window.location.href.substr(0, window.location.href.lastIndexOf("/") + 1) + "dialog.html";
-
-    let input = "";
+    var input = "";
 
     tableau.extensions.ui.displayDialogAsync(popupUrl, input, { height: 540, width: 800 }).then((closePayload) => {
       // The close payload is returned from the popup extension via the closeDialog method.
