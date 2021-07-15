@@ -135,12 +135,14 @@
     // Initialise the tabs, select and attach functions to buttons.
     $("#selectWorksheet").val(tableau.extensions.settings.get("worksheet"));
     $("#selectWorksheetFilter").val(tableau.extensions.settings.get("worksheet-filter"));
+    $("#table-classes").val(tableau.extensions.settings.get("table-classes"));
     $("#items-per-page").val(tableau.extensions.settings.get("items-per-page"));
     $("#action-element").val(tableau.extensions.settings.get("action-element"));
     $("#action-element-column").val(tableau.extensions.settings.get("action-element-column"));
     $("#checkbox-column").val(tableau.extensions.settings.get("checkbox-column"));
     $("#filter-row-input-size").val(tableau.extensions.settings.get("filter-row-input-size"));
     $("#select-btn-text").val(tableau.extensions.settings.get("select-btn-text"));
+    $("#column-classes").val(tableau.extensions.settings.get("column-classes"));
     $('#selectWorksheet').on('change', '', function (e) {
       columnsUpdate();
     });
@@ -196,54 +198,8 @@
     tableau.extensions.settings.set("worksheet", $("#selectWorksheet").val());
     tableau.extensions.settings.set("worksheet-filter", $("#selectWorksheetFilter").val());
 
-    // Create a string which will hold the datatable.net css options called tableClass.
-    // Also saves the individual Y and N so that we can restore the settings when you
-    // open the configuration dialogue.
     // https://datatables.net/examples/styling/
-    var tableClass = "";
-    if ($("#compact").is(":checked")) {
-      tableClass += " compact";
-      tableau.extensions.settings.set("compact", "Y");
-    } else {
-      tableau.extensions.settings.set("compact", "N");
-    }
-    if ($("#hover").is(":checked")) {
-      tableClass += " hover";
-      tableau.extensions.settings.set("hover", "Y");
-    } else {
-      tableau.extensions.settings.set("hover", "N");
-    }
-    if ($("#nowrap").is(":checked")) {
-      tableau.extensions.settings.set("nowrap", "Y");
-    } else {
-      tableClass += " nowrap";
-      tableau.extensions.settings.set("nowrap", "N");
-    }
-    if ($("#order-column").is(":checked")) {
-      tableClass += " order-column";
-      tableau.extensions.settings.set("order-column", "Y");
-    } else {
-      tableau.extensions.settings.set("order-column", "N");
-    }
-    if ($("#row-border").is(":checked")) {
-      tableClass += " row-border";
-      tableau.extensions.settings.set("row-border", "Y");
-    } else {
-      tableau.extensions.settings.set("row-border", "N");
-    }
-    if ($("#stripe").is(":checked")) {
-      tableClass += " stripe";
-      tableau.extensions.settings.set("stripe", "Y");
-    } else {
-      tableau.extensions.settings.set("stripe", "N");
-    }
-    if ($("#include-table-name").is(":checked")) {
-      tableClass += " include-table-name";
-      tableau.extensions.settings.set("include-table-name", "Y");
-    } else {
-      tableau.extensions.settings.set("include-table-name", "N");
-    }
-
+    var tableClass = $("#table-classes").val();
     tableau.extensions.settings.set("table-classes", tableClass);
 
       // ASL: additional controls
@@ -309,6 +265,7 @@
     tableau.extensions.settings.set("checkbox-column", $("#checkbox-column").val());
     tableau.extensions.settings.set("filter-row-input-size", $("#filter-row-input-size").val());
     tableau.extensions.settings.set("select-btn-text", $("#select-btn-text").val());
+    tableau.extensions.settings.set("column-classes", $("#column-classes").val());
 
     // This gets the column information and saves the column order and column name.
     // For example, if you have a data source with three columns and then reorder

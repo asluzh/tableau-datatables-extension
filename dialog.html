@@ -104,94 +104,17 @@
                                     List of options for items per page selector. If empty or one value, items per page is fixed (default is 5).
                                 </p>
                             </p>
+                            <p>
+                                <input id="column-classes" type="text" /><label for="column-classes">Column classes (optional)</label>
+                                <p class="option-description">
+                                    List of class names per column, in the order of appearance.
+                                </p>
+                            </p>    
                         </div>
                     </div>
                 </div>
                 <div id="tab3" class="tab-pane col s12">
                     <div class="row">
-                        <div class="col s6">
-                            <label>
-                                <input type="checkbox" class="filled-in" id="compact" />
-                                <span class="option-header">
-                                    Use Compact Layout
-                                </span>
-                            </label>
-                            <p class="option-description">
-                                Check compact layout to reduce the amount of white-space to increase the information density on screen.
-                            </p>
-                        </div>
-                        <div class="col s6">
-                            <label>
-                                <input type="checkbox" class="filled-in" id="hover" />
-                                <span class="option-header">
-                                    Row highlighting on Hover
-                                </span>
-                            </label>
-                            <p class="option-description">
-                                Check Row highlighting on Hover to instructs DataTables' styling to highlight a row when the mouse is hovered over it.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col s6">
-                            <label>
-                                <input type="checkbox" class="filled-in" id="nowrap" />
-                                <span class="option-header">
-                                    Wrap Text
-                                </span>
-                            </label>
-                            <p class="option-description">
-                                Check Wrap Text to instructs DataTables' styling to wrap your text in your cells.
-                            </p>
-                        </div>
-                        <div class="col s6">
-                            <label>
-                                <input type="checkbox" class="filled-in" id="order-column" />
-                                <span class="option-header">
-                                    Highlight Sort Column
-                                </span>
-                            </label>
-                            <p class="option-description">
-                                Check Highlight Sort Column to instructs DataTables' styling to highlight column when it is used for sorting.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col s6">
-                            <label>
-                                <input type="checkbox" class="filled-in" id="row-border" />
-                                <span class="option-header">
-                                    Show Row Border
-                                </span>
-                            </label>
-                            <p class="option-description">
-                                Check Highlight Sort Column to instructs DataTables' styling to draw a line between rows.
-                            </p>
-                        </div>
-                        <div class="col s6">
-                            <label>
-                                <input type="checkbox" class="filled-in" id="stripe" />
-                                <span class="option-header">
-                                    Show Row Striping
-                                </span>
-                            </label>
-                            <p class="option-description">
-                                Check Show Row Striping to instructs DataTables' styling to alternate row colours.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col s6">
-                            <label>
-                                <input type="checkbox" class="filled-in" id="include-table-name" />
-                                <span class="option-header">
-                                    Include Unique Table Name
-                                </span>
-                            </label>
-                            <p class="option-description">
-                                Check Include Unique Table Name to instruct DataTables to include the table name within the programmatic name of all controls. Should be checked if more than one DataTables Extension is being used within a Tableau Dashboard.
-                            </p>
-                        </div>
                         <div class="col s6">
                             <label>
                                 <input type="checkbox" class="filled-in" id="show-search-box" />
@@ -202,6 +125,9 @@
                             <p class="option-description">
                                 Check this option to enable search input elements, which searches in all table columns.
                             </p>
+                        </div>
+                        <div class="col s6">
+                            <input id="table-classes" type="text" /><label for="table-classes">Table classes (space delimited)</label>
                         </div>
                     </div>
                     <div class="row">
